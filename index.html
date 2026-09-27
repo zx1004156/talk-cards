@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>話匣子｜對話卡牌</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E9EDF1; --surface:#FFFFFF; --ink:#1C2230; --muted:#5A6272; --line:#CDD4DD;
+  --light:#8FD3C1; --medium:#F4BC4F; --deep:#3E4396; --any:#2A3140;
+  --on-light:#1C2230; --on-medium:#1C2230; --on-deep:#F5F6FA; --on-any:#F5F6FA;
+  --danger:#B3261E;
+  --display:"Huninn","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --ui:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171D; --surface:#1E232C; --ink:#E8ECF2; --muted:#9AA3B2; --line:#2F3642;
+    --light:#6FBFAC; --medium:#E3A83A; --deep:#5A60C0; --any:#3A4252; --danger:#F2B8B5;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171D; --surface:#1E232C; --ink:#E8ECF2; --muted:#9AA3B2; --line:#2F3642;
+  --light:#6FBFAC; --medium:#E3A83A; --deep:#5A60C0; --any:#3A4252; --danger:#F2B8B5;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:16px;line-height:1.6}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;touch-action:manipulation}
+:focus-visible{outline:3px solid var(--medium);outline-offset:2px}
+.wrap{max-width:720px;margin:0 auto;padding:20px 18px 48px}
+
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+h1{font-family:var(--display);font-weight:400;font-size:2.4rem;line-height:1;margin:0;letter-spacing:.04em}
+.tabs{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
+.tabs button{border:0;background:none;padding:6px 18px;border-radius:999px;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+
+.levels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.levels button{border:2px solid transparent;border-radius:14px;padding:10px 4px;background:var(--surface);text-align:center;line-height:1.3}
+.levels button b{display:block;font-family:var(--display);font-weight:400;font-size:1.15rem}
+.levels button small{color:var(--muted);font-size:.75rem}
+.levels button[aria-pressed="true"]{border-color:var(--ink)}
+.levels .sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:1px}
+
+.toggles{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 18px;color:var(--muted);font-size:.9rem}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+
+/* the card */
+.stage{perspective:1400px;display:flex;justify-content:center;margin:8px 0 18px}
+.card{width:min(100%,360px);aspect-ratio:5/7;position:relative;cursor:pointer;border:0;padding:0;background:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.card .inner,.card .face,.card .face *{pointer-events:none}
+.card .inner{position:absolute;inset:0;transition:transform .55s cubic-bezier(.3,.7,.2,1);transform-style:preserve-3d}
+.card.flipped .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:22px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;box-shadow:0 18px 40px -18px rgba(20,24,40,.45)}
+.back{display:grid;place-items:center;background:var(--bk,var(--any));color:var(--bk-on,var(--on-any))}
+.back::before{content:"";position:absolute;inset:14px;border-radius:14px;border:2px solid currentColor;opacity:.35}
+.back .pattern{position:absolute;inset:0;opacity:.14;background-image:radial-gradient(currentColor 2px,transparent 2.5px);background-size:22px 22px}
+.back .mark{position:relative;text-align:center}
+.back .mark span{display:block;font-family:var(--display);font-size:3.2rem;line-height:1.1;letter-spacing:.08em}
+.back .mark small{opacity:.8}
+.front{transform:rotateY(180deg);background:var(--fc,var(--any));color:var(--fc-on,var(--on-any));display:flex;flex-direction:column;padding:22px 24px}
+.corner{font-family:var(--display);font-size:1.6rem;line-height:1}
+.corner.bottom{align-self:flex-end;transform:rotate(180deg)}
+.qtext{flex:1;display:flex;align-items:center;font-family:var(--display);font-size:clamp(1.3rem,5.4vw,1.75rem);line-height:1.55;overflow-wrap:anywhere;text-align:left}
+.badges{display:flex;gap:6px;flex-wrap:wrap;min-height:26px}
+.badge{font-size:.78rem;padding:2px 10px;border-radius:999px;border:1.5px solid currentColor;white-space:nowrap}
+.hint{text-align:center;color:var(--muted);font-size:.9rem;margin:-6px 0 14px;min-height:1.6em}
+
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn{border:0;border-radius:12px;padding:11px 22px;background:var(--ink);color:var(--bg);font-weight:500}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.small{padding:6px 12px;font-size:.88rem;border-radius:10px}
+.btn.danger{color:var(--danger);border-color:currentColor}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+details.rules{margin-top:28px;background:var(--surface);border-radius:16px;padding:14px 18px;border:1px solid var(--line)}
+details.rules summary{cursor:pointer;font-weight:500}
+details.rules ol{margin:10px 0 0;padding-left:1.3em;color:var(--muted)}
+
+/* manage */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:18px}
+.panel h2{font-size:1.1rem;margin:0 0 12px;font-weight:700}
+textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--bg);resize:vertical;min-height:80px}
+select{border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;background:var(--bg)}
+.row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.row label{display:flex;align-items:center;gap:6px}
+.status{font-size:.85rem;color:var(--muted);margin:-8px 0 16px}
+.notice{font-size:.9rem;padding:10px 14px;border-radius:12px;background:var(--bg);margin-bottom:14px}
+.list{list-style:none;margin:0;padding:0}
+.list li{display:grid;grid-template-columns:8px 1fr auto;gap:12px;align-items:start;padding:12px 0;border-top:1px solid var(--line)}
+.list li:first-child{border-top:0}
+.list .bar{width:8px;align-self:stretch;border-radius:4px}
+.list .t{overflow-wrap:anywhere}
+.list .meta{font-size:.8rem;color:var(--muted)}
+.list .ops{display:flex;gap:6px}
+.empty{color:var(--muted);text-align:center;padding:24px 8px}
+.io{display:none;margin-top:12px}
+.io.open{display:block}
+
+@media (max-width:480px){
+  h1{font-size:2rem}
+  .levels button small{display:none}
+  .list li{grid-template-columns:6px 1fr}
+  .list .ops{grid-column:2}
+}
+@media (prefers-reduced-motion: reduce){
+  .card .inner{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>話匣子</h1>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-play" aria-selected="true">抽牌</button>
+      <button role="tab" id="tab-manage" aria-selected="false">題庫</button>
+    </div>
+  </header>
+
+  <!-- PLAY -->
+  <section id="view-play">
+    <div class="levels" id="levels"></div>
+    <div class="toggles">
+      <label><input type="checkbox" id="only-humor"> 只抽幽默題 ★</label>
+      <label><input type="checkbox" id="only-guess"> 只抽猜猜看</label>
+    </div>
+
+    <div class="stage">
+      <button class="card" id="card" aria-live="polite" aria-label="抽一張牌">
+        <div class="inner">
+          <div class="face back" id="back">
+            <div class="pattern"></div>
+            <div class="mark"><span>話匣子</span><small id="back-label">隨機</small></div>
+          </div>
+          <div class="face front" id="front">
+            <div class="corner" id="corner-top"></div>
+            <div class="qtext" id="qtext"></div>
+            <div class="badges" id="badges"></div>
+            <div class="corner bottom" id="corner-bottom"></div>
+          </div>
+        </div>
+      </button>
+    </div>
+    <p class="hint" id="hint">點牌或按「抽一張」開始</p>
+    <div class="actions">
+      <button class="btn" id="draw">抽一張</button>
+      <button class="btn ghost" id="shuffle">重新洗牌</button>
+    </div>
+
+    <details class="rules">
+      <summary>建議玩法</summary>
+      <ol>
+        <li>從輕度開始，聊熱了再往中度、深度走。</li>
+        <li>抽牌的人先問，問完自己也要回答同一題。</li>
+        <li>任何人都可以說「跳過」，不需要解釋。</li>
+        <li>猜猜看卡：先猜對方的答案，再請他公布。老朋友玩特別有趣。</li>
+        <li>深度題聊得太沉時，可以切回輕度，勾選「只抽幽默題」抽幾張，讓氣氛輕鬆一下。</li>
+      </ol>
+    </details>
+  </section>
+
+  <!-- MANAGE -->
+  <section id="view-manage" hidden>
+    <p class="status" id="status">載入題庫中…</p>
+    <div class="notice" id="ro-notice" hidden>這份題庫目前是唯讀的，你可以抽牌，但無法新增或修改題目。</div>
+
+    <div class="panel" id="editor">
+      <h2 id="editor-title">新增題目</h2>
+      <textarea id="f-text" placeholder="例如：你最近一次熬夜是為了什麼？" maxlength="200"></textarea>
+      <div class="row">
+        <select id="f-level" aria-label="層級">
+          <option value="light">輕度</option>
+          <option value="medium">中度</option>
+          <option value="deep">深度</option>
+        </select>
+        <label><input type="checkbox" id="f-humor"> 幽默 ★</label>
+        <label><input type="checkbox" id="f-guess"> 猜猜看</label>
+      </div>
+      <div class="actions" style="justify-content:flex-start">
+        <button class="btn" id="f-save">新增題目</button>
+        <button class="btn ghost" id="f-cancel" hidden>取消</button>
+      </div>
+      <p class="hint" id="f-msg" style="text-align:left;margin:10px 0 0"></p>
+    </div>
+
+    <div class="panel">
+      <div class="row" style="margin-top:0;justify-content:space-between">
+        <h2 style="margin:0" id="list-title">題目</h2>
+        <select id="list-filter" aria-label="篩選層級">
+          <option value="all">全部層級</option>
+          <option value="light">輕度</option>
+          <option value="medium">中度</option>
+          <option value="deep">深度</option>
+        </select>
+      </div>
+      <ul class="list" id="list"></ul>
+    </div>
+
+    <div class="panel">
+      <h2>備份與匯入</h2>
+      <p class="meta" style="color:var(--muted);margin:0 0 10px;font-size:.9rem">匯出成文字可以備份或分享給朋友；貼上別人的題庫文字即可匯入（會加在現有題目之後）。</p>
+      <div class="actions" style="justify-content:flex-start">
+        <button class="btn ghost small" id="btn-export">匯出題庫</button>
+        <button class="btn ghost small" id="btn-import">匯入題目</button>
+      </div>
+      <div class="io" id="export-box">
+        <textarea id="export-text" readonly rows="6"></textarea>
+        <div class="actions" style="justify-content:flex-start;margin-top:8px">
+          <button class="btn small" id="btn-copy">複製</button>
+        </div>
+      </div>
+      <div class="io" id="import-box">
+        <textarea id="import-text" rows="6" placeholder='[{"text":"題目內容","level":"light","humor":false,"guess":false}]'></textarea>
+        <div class="actions" style="justify-content:flex-start;margin-top:8px">
+          <button class="btn small" id="btn-do-import">匯入</button>
+        </div>
+      </div>
+      <p class="hint" id="io-msg" style="text-align:left;margin:10px 0 0"></p>
+    </div>
+  </section>
+</div>
+
+<script>
+const LEVELS = {
+  light:  {name:"輕度", short:"輕", hint:"暖身破冰"},
+  medium: {name:"中度", short:"中", hint:"經歷與想法"},
+  deep:   {name:"深度", short:"深", hint:"價值與內心"},
+};
+// Offline starter deck, used only when the shared question bank isn't available.
+const STARTER_IDS = ["s01", "s02", "s03", "s04", "s05", "s06", "s07", "s08", "s09", "s10", "s11", "s12", "s13", "s14", "s15", "s16", "s17", "s18", "s19", "s20", "s21", "s22", "s23", "s24", "s25", "s26", "s27", "s28", "s29", "s30", "s31", "s32", "s33", "s34", "s35", "s36", "a001", "a002", "a003", "a004", "a005", "a006", "a007", "a008", "a009", "a010", "a011", "a012", "a013", "a014", "a015", "a016", "a017", "a018", "a019", "a020", "a021", "a022", "a023", "a024", "a025", "a026", "a027", "a028", "a029", "a030", "a031", "a032", "a033", "a034", "a035", "a036", "a037", "a038", "a039", "a040", "a041", "a042", "a043", "a044", "a045", "a046", "a047", "a048", "a049", "a050", "a051", "a052", "a053", "a054", "a055", "a056", "a057", "a058", "a059", "a060", "a061", "a062", "a063", "a064", "a065", "a066", "a067", "a068", "a069", "a070", "a071", "a072", "a073", "a074", "a075", "a076", "a077", "a078", "a079", "a080", "a081", "a082", "a083", "a084", "a085", "a086", "a087", "a088", "a089", "a090"];
+const STARTER = [
+ ["light", "這禮拜吃到最好吃的一餐是什麼？", 0, 0],
+ ["light", "如果你的人生有背景音樂，現在正在播哪首歌？", 1, 0],
+ ["light", "你有什麼莫名其妙的小技能？", 1, 0],
+ ["light", "如果明天醒來變成你家附近的一隻動物，你會是誰？", 1, 0],
+ ["light", "最近一次覺得「活著真好」是什麼時候？", 0, 0],
+ ["light", "這禮拜有什麼讓你會心一笑的小事？", 0, 0],
+ ["light", "打開手機相簿，最新的一張照片背後有什麼故事？", 1, 0],
+ ["light", "如果你是一種調味料，你會是什麼？為什麼？", 1, 0],
+ ["light", "放假一整天，完全不用管任何人，你會怎麼過？", 0, 0],
+ ["light", "最近一次笑到停不下來是因為什麼？", 1, 0],
+ ["light", "猜猜看對方最常點的飲料是什麼，再請他公布答案。", 0, 1],
+ ["light", "二選一：一輩子只能吃拉麵，還是一輩子只能吃咖哩？", 1, 0],
+ ["medium", "去過印象最深刻的地方是哪裡？那裡發生了什麼？", 0, 0],
+ ["medium", "你做過最丟臉、但現在想起來會笑的事是什麼？", 1, 0],
+ ["medium", "你做過最蠢、但當時覺得超聰明的決定是什麼？", 1, 0],
+ ["medium", "小時候的夢想是什麼？現在離它多遠？", 0, 0],
+ ["medium", "哪個人對你現在的樣子影響最大？", 0, 0],
+ ["medium", "有沒有哪個地方讓你想過「乾脆住在這裡算了」？為什麼？", 0, 0],
+ ["medium", "別人最常誤會你是什麼樣的人？", 0, 0],
+ ["medium", "最近在煩惱的一件事是什麼？", 0, 0],
+ ["medium", "如果能傳一則訊息給十年前的自己，但只能用十個字，你會說什麼？", 1, 0],
+ ["medium", "你最享受的「一個人的時間」是怎麼過的？", 0, 0],
+ ["medium", "猜猜看對方最想去哪個國家旅行，再請他公布答案和原因。", 0, 1],
+ ["medium", "你人生中最戲劇化的一次誤會是什麼？", 1, 0],
+ ["deep", "改變你人生最大的事件是什麼？", 0, 0],
+ ["deep", "你最後悔的事是什麼？", 0, 0],
+ ["deep", "你最希望別人怎麼記得你？", 0, 0],
+ ["deep", "有沒有一件事，你到現在還沒跟任何人好好說過？", 0, 0],
+ ["deep", "你覺得自己這幾年最大的改變是什麼？", 0, 0],
+ ["deep", "你最害怕失去的是什麼？", 0, 0],
+ ["deep", "什麼時候，你覺得自己最像自己？", 0, 0],
+ ["deep", "如果完全不用考慮錢，你會想過什麼樣的人生？", 0, 0],
+ ["deep", "你曾經希望被誰原諒，或是原諒過誰？", 0, 0],
+ ["deep", "猜猜看對方最珍惜的是什麼，再請他說說你猜得對不對。", 0, 1],
+ ["light", "如果你的人生拍成電影，片名會是什麼？誰來演你？", 1, 0],
+ ["medium", "如果要替你到目前為止的人生寫一則網路評價，幾顆星？評語是什麼？", 1, 0],
+ ["light", "你最近一次衝動購物買了什麼？後悔嗎？", 1, 0],
+ ["light", "如果只能帶三樣東西去無人島，你會帶什麼？", 1, 0],
+ ["light", "你手機裡最常用的 App 是哪一個？都拿它來做什麼？", 0, 0],
+ ["light", "早餐派還是宵夜派？最愛吃什麼？", 0, 0],
+ ["light", "小時候最愛看的卡通是什麼？", 0, 0],
+ ["light", "如果可以擁有一種超能力，但只能用在生活小事上，你會選什麼？", 1, 0],
+ ["light", "你最近迷上的東西是什麼？一首歌、一部劇、一種食物都可以。", 0, 0],
+ ["light", "你覺得自己最像哪一種天氣？為什麼？", 1, 0],
+ ["light", "有沒有什麼食物是大家都愛、只有你不喜歡的？", 1, 0],
+ ["light", "你理想中的週末早晨長什麼樣子？", 0, 0],
+ ["light", "如果你開一家店，會賣什麼？店名叫什麼？", 1, 0],
+ ["light", "你最常被別人稱讚的地方是什麼？", 0, 0],
+ ["light", "貓派、狗派，還是其他動物派？", 0, 0],
+ ["light", "最近學會的一件新東西是什麼？", 0, 0],
+ ["light", "如果你的個性是一種飲料，會是什麼口味？", 1, 0],
+ ["light", "旅行時你是行程規劃派，還是走到哪算到哪？", 0, 0],
+ ["light", "你有什麼一定要做才睡得著的小習慣？", 1, 0],
+ ["light", "你重看最多次的一部電影或動畫是什麼？", 0, 0],
+ ["light", "二選一：一年不能用手機，還是一年不能吃甜食？", 1, 0],
+ ["light", "如果今晚可以瞬間移動到任何地方吃晚餐，你會去哪裡？", 0, 0],
+ ["light", "你最近一次被陌生人的善意打動是什麼時候？", 0, 0],
+ ["light", "你的鬧鐘通常要響幾次，你才會真的起床？", 1, 0],
+ ["light", "你家鄉有什麼東西，是你最想推薦給別人的？", 0, 0],
+ ["light", "你最喜歡一年中的哪個季節？為什麼？", 0, 0],
+ ["light", "猜猜看對方早上起床第一件事做什麼，再請他公布答案。", 0, 1],
+ ["light", "猜猜看對方的手機桌布是什麼，再請他拿出來對答案。", 1, 1],
+ ["light", "猜猜看對方最拿手的一道料理是什麼，再請他公布答案。", 0, 1],
+ ["light", "猜猜看對方小時候最想當什麼，再請他公布答案。", 0, 1],
+ ["light", "猜猜看對方最受不了的一件小事是什麼，再請他公布答案。", 1, 1],
+ ["light", "猜猜看對方最常去的一家店是哪裡，再請他公布答案。", 0, 1],
+ ["medium", "你人生的第一份工作或打工是什麼？從中學到了什麼？", 0, 0],
+ ["medium", "最近一次讓你覺得「我長大了」的瞬間是什麼？", 0, 0],
+ ["medium", "有什麼東西是你以前很討厭、現在卻喜歡上的？", 0, 0],
+ ["medium", "你覺得朋友之間最重要的是什麼？", 0, 0],
+ ["medium", "如果可以重新選一次科系或工作，你會選什麼？", 0, 0],
+ ["medium", "你最近在努力的一件事是什麼？", 0, 0],
+ ["medium", "心情低落的時候，你通常怎麼讓自己打起精神？", 0, 0],
+ ["medium", "有沒有一本書、一部電影或一首歌，改變了你看事情的方式？", 0, 0],
+ ["medium", "你覺得自己最被低估的優點是什麼？", 0, 0],
+ ["medium", "你心中「理想的一天」和「現實的一天」差多少？", 0, 0],
+ ["medium", "你曾經為了什麼事勇敢過一次？", 0, 0],
+ ["medium", "有什麼是你一直想學、但還沒開始的？是什麼擋住了你？", 0, 0],
+ ["medium", "你覺得別人第一次見到你，會有什麼印象？跟真正的你一樣嗎？", 0, 0],
+ ["medium", "你遇過最難忘的一位老師或前輩是誰？", 0, 0],
+ ["medium", "如果把你的人生分成幾個章節，現在是第幾章？這一章叫什麼？", 0, 0],
+ ["medium", "你在什麼樣的環境下最能專心？", 0, 0],
+ ["medium", "你最近一次跟人意見不合是為了什麼？後來怎麼解決的？", 0, 0],
+ ["medium", "你曾經被誤認成什麼奇怪的身份嗎？", 1, 0],
+ ["medium", "你做過最失敗的一道料理是什麼？", 1, 0],
+ ["medium", "你講過最尷尬的一句話是什麼？", 1, 0],
+ ["medium", "如果朋友要把你介紹給別人，你希望他怎麼說？最怕他怎麼說？", 1, 0],
+ ["medium", "你有什麼別人覺得很奇怪、但你堅持不改的習慣？", 1, 0],
+ ["medium", "你有沒有迷過什麼現在想起來很難為情的東西？", 1, 0],
+ ["medium", "旅行中遇過最離譜的狀況是什麼？", 1, 0],
+ ["medium", "猜猜看對方壓力大的時候會做什麼，再請他公布答案。", 0, 1],
+ ["medium", "猜猜看對方最佩服的人是誰，再請他公布答案和原因。", 0, 1],
+ ["medium", "猜猜看對方最近在煩惱哪一方面的事（工作、感情、家人……），再請他說說看。", 0, 1],
+ ["medium", "猜猜看對方最想重新體驗一次的是人生哪個階段，再請他公布答案。", 0, 1],
+ ["medium", "猜猜看對方最不擅長的事是什麼，再請他公布答案。", 1, 1],
+ ["medium", "猜猜看對方在朋友圈裡通常是什麼角色（開心果、心理輔導員、行程規劃師……），再請他公布。", 1, 1],
+ ["deep", "你覺得什麼樣的人生才算是「過得好」？", 0, 0],
+ ["deep", "你曾經放棄過什麼很重要的東西嗎？現在怎麼看那個決定？", 0, 0],
+ ["deep", "有什麼信念是你以前深信、後來改變了的？", 0, 0],
+ ["deep", "你人生中最孤單的一段時間是什麼時候？", 0, 0],
+ ["deep", "有沒有一句話，你很想對家人說，卻一直說不出口？", 0, 0],
+ ["deep", "你最想對誰好好說一聲謝謝？為什麼？", 0, 0],
+ ["deep", "如果只剩一年可以活，你會做哪些不一樣的事？", 0, 0],
+ ["deep", "對你來說，「家」是什麼？", 0, 0],
+ ["deep", "有沒有哪一刻，你覺得自己真正被理解了？", 0, 0],
+ ["deep", "你最不想變成什麼樣的人？", 0, 0],
+ ["deep", "你現在的生活，是十年前的你想像的樣子嗎？", 0, 0],
+ ["deep", "你最怕被別人發現自己的哪一面？", 0, 0],
+ ["deep", "你人生中最勇敢的決定是什麼？", 0, 0],
+ ["deep", "有什麼事是你到現在還在學著接受的？", 0, 0],
+ ["deep", "你怎麼定義「成功」？這個定義改變過嗎？", 0, 0],
+ ["deep", "你覺得自己從父母身上繼承了什麼？有想保留或想改掉的嗎？", 0, 0],
+ ["deep", "如果可以跟過去的某個人再見一面，你會想見誰？想說什麼？", 0, 0],
+ ["deep", "你希望十年後的自己在過什麼樣的生活？", 0, 0],
+ ["deep", "對你來說，什麼是用錢買不到、但你最想要的？", 0, 0],
+ ["deep", "什麼事會讓你覺得自己「不夠好」？", 0, 0],
+ ["deep", "在場的人身上，有什麼是你想學習的？", 0, 0],
+ ["deep", "猜猜看對方人生中最重要的轉折點是什麼，再請他說說看。", 0, 1],
+ ["deep", "猜猜看對方最想實現的夢想是什麼，再請他公布答案。", 0, 1],
+ ["deep", "猜猜看對方覺得自己最大的優點是什麼，再請他公布答案。", 0, 1],
+ ["deep", "猜猜看對方最想對十年前的自己說什麼，再請他公布答案。", 0, 1],
+ ["deep", "猜猜看對方在什麼時候最有安全感，再請他說說看。", 0, 1],
+ ["medium", "如果你的人生有一個隱藏結局，你希望是什麼？", 1, 0],
+ ["medium", "如果把你這個人做成一款遊戲，會是什麼類型？最難的關卡是什麼？", 1, 0],
+ ["medium", "如果你的人生有一份說明書，第一頁的注意事項會寫什麼？", 1, 0],
+ ["medium", "如果你的人生目前是一道料理，會是什麼菜？還差什麼調味？", 1, 0]
+].map((r,i)=>({id:STARTER_IDS[i],level:r[0],text:r[1],humor:!!r[2],guess:!!r[3],createdAt:i}));
+
+const LS_KEY = "huaxiazi-questions-v2", LS_OLD = "huaxiazi-questions-v1";
+const $ = id => document.getElementById(id);
+
+let questions = [];
+let mode = "loading";   // loading | db | local
+let db = null, readOnly = false;
+let level = "all", onlyHumor = false, onlyGuess = false;
+let drawn = new Set(), current = null, flipped = false, lockUntil = 0, flipTimer = null;
+let editingId = null, pendingDelete = null;
+
+/* ---------- storage ---------- */
+function lsLoad(){
+  try{ const v = localStorage.getItem(LS_KEY); if(v){ const a = JSON.parse(v); if(Array.isArray(a)) return a; } }catch(e){}
+  let list = STARTER.map(q=>({...q}));
+  // keep questions added in the older version of this file
+  try{
+    const o = JSON.parse(localStorage.getItem(LS_OLD) || "null");
+    if(Array.isArray(o)){
+      const texts = new Set(list.map(q=>q.text));
+      for(const q of o){ if(q && q.text && !texts.has(q.text)){ list.push(q); texts.add(q.text); } }
+    }
+  }catch(e){}
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(list)); }catch(e){}
+  return list;
+}
+function lsSave(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(questions)); }catch(e){} }
+
+function useLocal(){
+  mode = "local"; questions = lsLoad(); onData();
+}
+
+async function init(){
+  renderLevels(); renderCardBack();
+  if(!window.claude || typeof window.claude.use !== "function"){ useLocal(); return; }
+  let handle = null;
+  try{ handle = await window.claude.use("db"); }catch(e){}
+  if(!handle){ useLocal(); return; }
+  db = handle; mode = "db";
+  db.collection("questions").onSnapshot(snap=>{
+    questions = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    onData();
+  }, err=>{ if(!questions.length) useLocal(); });
+}
+
+async function saveQuestion(q){
+  if(mode === "db"){
+    const {id, ...data} = q;
+    try{ await db.collection("questions").doc(id).set(data); return true; }
+    catch(e){ handleWriteError(e); return false; }
+  }
+  const i = questions.findIndex(x=>x.id===q.id);
+  if(i>=0) questions[i] = q; else questions.push(q);
+  lsSave(); onData(); return true;
+}
+async function removeQuestion(id){
+  if(mode === "db"){
+    try{ await db.collection("questions").doc(id).delete(); return true; }
+    catch(e){ handleWriteError(e); return false; }
+  }
+  questions = questions.filter(q=>q.id!==id); lsSave(); onData(); return true;
+}
+function handleWriteError(e){
+  const code = e && e.code;
+  if(code === "not_granted" || code === "revoked"){ readOnly = true; renderManage(); }
+  else { $("f-msg").textContent = "沒有存成功，請稍後再試一次。"; }
+}
+const newId = () => "q" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+
+/* ---------- play ---------- */
+function renderLevels(){
+  const box = $("levels"); box.innerHTML = "";
+  const opts = [["all","隨機","三種混合","any"], ...Object.entries(LEVELS).map(([k,v])=>[k,v.name,v.hint,k])];
+  for(const [k,name,hint,color] of opts){
+    const b = document.createElement("button");
+    b.setAttribute("aria-pressed", String(level===k));
+    const sw = document.createElement("span"); sw.className="sw"; sw.style.background = `var(--${color})`;
+    const t = document.createElement("b"); t.append(sw, name);
+    const s = document.createElement("small"); s.textContent = hint;
+    b.append(t, s);
+    b.onclick = () => { level = k; renderLevels(); resetDeck(); };
+    box.append(b);
+  }
+}
+function pool(){
+  return questions.filter(q => (level==="all" || q.level===level) && (!onlyHumor || q.humor) && (!onlyGuess || q.guess));
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function resetDeck(){
+  clearTimeout(flipTimer); lockUntil = 0;
+  drawn = new Set();
+  current = null;
+  if(flipped){ flipped=false; $("card").classList.remove("flipped"); }
+  renderCardBack(); updateHint();
+}
+function remaining(){
+  const ids = new Set(pool().map(q=>q.id));
+  return pool().filter(q=>valid(q) && !drawn.has(q.id)).length;
+}
+function updateHint(){
+  const p = pool().length;
+  if(mode==="loading"){ $("hint").textContent = "載入題庫中…"; $("draw").disabled = true; return; }
+  if(!p){ $("hint").textContent = "這個組合沒有題目，換個層級或到「題庫」新增吧"; $("draw").disabled = true; return; }
+  $("draw").disabled = false;
+  $("draw").textContent = current ? "下一張" : "抽一張";
+  const r = remaining();
+  $("hint").textContent = current ? (r ? `這一輪還剩 ${r} 張` : "這一輪抽完了，下一張會重新洗牌") : `共 ${p} 張，點牌或按「抽一張」開始`;
+}
+function renderCardBack(){
+  const c = level==="all" ? "any" : level;
+  const back = $("back");
+  back.style.setProperty("--bk", `var(--${c})`);
+  back.style.setProperty("--bk-on", `var(--on-${c})`);
+  $("back-label").textContent = level==="all" ? "隨機" : LEVELS[level].name;
+}
+function fillFront(q){
+  const f = $("front");
+  f.style.setProperty("--fc", `var(--${q.level})`);
+  f.style.setProperty("--fc-on", `var(--on-${q.level})`);
+  $("corner-top").textContent = LEVELS[q.level].short;
+  $("corner-bottom").textContent = LEVELS[q.level].short;
+  $("qtext").textContent = q.text;
+  const b = $("badges"); b.innerHTML = "";
+  const add = t => { const s=document.createElement("span"); s.className="badge"; s.textContent=t; b.append(s); };
+  add(LEVELS[q.level].name);
+  if(q.humor) add("★ 幽默");
+  if(q.guess) add("猜猜看");
+}
+const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function valid(q){ return q && typeof q.text==="string" && LEVELS[q.level]; }
+function draw(){
+  const now = Date.now();
+  if(now < lockUntil) return;              // ignore double taps during the flip
+  const ids = new Set(pool().filter(valid).map(q=>q.id));
+  if(!ids.size){ updateHint(); return; }
+  let left = [...ids].filter(id=>!drawn.has(id));
+  if(!left.length){                        // round finished: start a new one
+    drawn = new Set();
+    left = [...ids].filter(id=>id!==current);
+    if(!left.length) left = [...ids];
+  }
+  const pick = left[Math.floor(Math.random()*left.length)];
+  drawn.add(pick);
+  const q = questions.find(x=>x.id===pick);
+  if(!valid(q)){ updateHint(); return; }
+  const card = $("card");
+  const reveal = () => {
+    try{ current = q.id; fillFront(q); }
+    finally{ flipped = true; card.classList.add("flipped"); updateHint(); }
+  };
+  clearTimeout(flipTimer);
+  if(flipped && !reduced()){
+    lockUntil = now + 450;
+    card.classList.remove("flipped"); flipped = false;
+    flipTimer = setTimeout(reveal, 420);
+  } else {
+    lockUntil = now + 150;
+    reveal();
+  }
+}
+
+/* ---------- manage ---------- */
+function renderManage(){
+  const st = $("status");
+  st.textContent = mode==="db" ? `共 ${questions.length} 題，改動會自動存到這個頁面，分享給朋友也看得到。`
+                 : mode==="local" ? `共 ${questions.length} 題，存在這台裝置的瀏覽器裡。` : "載入題庫中…";
+  $("ro-notice").hidden = !readOnly;
+  for(const id of ["f-text","f-level","f-humor","f-guess","f-save","btn-import","btn-do-import"]) $(id).disabled = readOnly;
+  const filter = $("list-filter").value;
+  const items = questions.filter(q=>filter==="all"||q.level===filter)
+    .sort((a,b)=>["light","medium","deep"].indexOf(a.level)-["light","medium","deep"].indexOf(b.level) || (a.createdAt||0)-(b.createdAt||0));
+  $("list-title").textContent = `題目（${items.length}）`;
+  const ul = $("list"); ul.innerHTML = "";
+  if(!items.length){ const li=document.createElement("li"); li.className="empty"; li.style.display="block"; li.textContent="這裡還沒有題目，從上面新增第一題吧。"; ul.append(li); return; }
+  for(const q of items){
+    const li = document.createElement("li");
+    const bar = document.createElement("span"); bar.className="bar"; bar.style.background=`var(--${q.level})`;
+    const body = document.createElement("div");
+    const t = document.createElement("div"); t.className="t"; t.textContent = q.text;
+    const m = document.createElement("div"); m.className="meta";
+    m.textContent = [LEVELS[q.level].name, q.humor?"★ 幽默":"", q.guess?"猜猜看":""].filter(Boolean).join("，");
+    body.append(t,m);
+    const ops = document.createElement("div"); ops.className="ops";
+    if(!readOnly){
+      const e = document.createElement("button"); e.className="btn ghost small"; e.textContent="編輯"; e.onclick=()=>startEdit(q);
+      const d = document.createElement("button"); d.className="btn ghost small danger";
+      d.textContent = pendingDelete===q.id ? "確定刪除" : "刪除";
+      d.onclick = async ()=>{
+        if(pendingDelete!==q.id){ pendingDelete=q.id; renderManage(); return; }
+        pendingDelete=null; if(editingId===q.id) stopEdit(); await removeQuestion(q.id);
+      };
+      ops.append(e,d);
+    }
+    li.append(bar,body,ops); ul.append(li);
+  }
+}
+function startEdit(q){
+  editingId = q.id;
+  $("editor-title").textContent = "修改題目";
+  $("f-text").value = q.text; $("f-level").value = q.level;
+  $("f-humor").checked = !!q.humor; $("f-guess").checked = !!q.guess;
+  $("f-save").textContent = "儲存修改"; $("f-cancel").hidden = false; $("f-msg").textContent = "";
+  $("editor").scrollIntoView({behavior: reduced()?"auto":"smooth", block:"start"});
+  $("f-text").focus();
+}
+function stopEdit(){
+  editingId = null;
+  $("editor-title").textContent = "新增題目";
+  $("f-text").value = ""; $("f-humor").checked = false; $("f-guess").checked = false;
+  $("f-save").textContent = "新增題目"; $("f-cancel").hidden = true;
+}
+async function submit(){
+  const text = $("f-text").value.trim();
+  if(!text){ $("f-msg").textContent = "先寫下題目內容。"; $("f-text").focus(); return; }
+  const base = editingId ? questions.find(q=>q.id===editingId) : null;
+  const q = { id: editingId || newId(), text, level: $("f-level").value,
+    humor: $("f-humor").checked, guess: $("f-guess").checked,
+    createdAt: base ? (base.createdAt||0) : Date.now() };
+  const wasEdit = !!editingId;
+  $("f-save").disabled = true;
+  const ok = await saveQuestion(q);
+  $("f-save").disabled = readOnly;
+  if(ok){ stopEdit(); $("f-msg").textContent = wasEdit ? "已儲存修改。" : `已新增到${LEVELS[q.level].name}。`; }
+}
+
+/* export / import */
+function toggleBox(id){ for(const b of ["export-box","import-box"]) $(b).classList.toggle("open", b===id && !$(b).classList.contains("open")); $("io-msg").textContent=""; }
+function doExport(){
+  const data = questions.map(({text,level,humor,guess})=>({text,level,humor:!!humor,guess:!!guess}));
+  $("export-text").value = JSON.stringify(data, null, 1);
+  toggleBox("export-box");
+}
+async function doCopy(){
+  const ta = $("export-text");
+  try{ await navigator.clipboard.writeText(ta.value); $("io-msg").textContent = "已複製。"; }
+  catch(e){ ta.focus(); ta.select(); $("io-msg").textContent = "已全選，請手動複製。"; }
+}
+async function doImport(){
+  let arr;
+  try{ arr = JSON.parse($("import-text").value); }catch(e){ $("io-msg").textContent = "格式看不懂，請貼上從「匯出題庫」複製的文字。"; return; }
+  if(!Array.isArray(arr)){ $("io-msg").textContent = "格式看不懂，請貼上從「匯出題庫」複製的文字。"; return; }
+  const existing = new Set(questions.map(q=>q.text));
+  const valid = arr.filter(x=>x && typeof x.text==="string" && x.text.trim() && LEVELS[x.level] && !existing.has(x.text.trim()));
+  if(!valid.length){ $("io-msg").textContent = "沒有可以匯入的新題目（重複的題目會自動略過）。"; return; }
+  $("btn-do-import").disabled = true;
+  let n = 0;
+  for(const x of valid){
+    const ok = await saveQuestion({id:newId(), text:x.text.trim().slice(0,200), level:x.level, humor:!!x.humor, guess:!!x.guess, createdAt:Date.now()+n});
+    if(!ok) break; n++;
+  }
+  $("btn-do-import").disabled = readOnly;
+  $("io-msg").textContent = `已匯入 ${n} 題。`;
+  if(n){ $("import-text").value = ""; }
+}
+
+/* ---------- wiring ---------- */
+function onData(){ renderManage(); updateHint(); }
+function showTab(which){
+  const play = which==="play";
+  $("tab-play").setAttribute("aria-selected", String(play));
+  $("tab-manage").setAttribute("aria-selected", String(!play));
+  $("view-play").hidden = !play; $("view-manage").hidden = play;
+  if(play) updateHint(); else renderManage();
+}
+$("tab-play").onclick = ()=>showTab("play");
+$("tab-manage").onclick = ()=>showTab("manage");
+$("card").onclick = draw;
+$("draw").onclick = draw;
+$("shuffle").onclick = resetDeck;
+$("only-humor").onchange = e=>{ onlyHumor = e.target.checked; resetDeck(); };
+$("only-guess").onchange = e=>{ onlyGuess = e.target.checked; resetDeck(); };
+$("f-save").onclick = submit;
+$("f-cancel").onclick = ()=>{ stopEdit(); $("f-msg").textContent=""; };
+$("list-filter").onchange = renderManage;
+$("btn-export").onclick = doExport;
+$("btn-import").onclick = ()=>toggleBox("import-box");
+$("btn-copy").onclick = doCopy;
+$("btn-do-import").onclick = doImport;
+updateHint();
+init();
+</script>
+</body>
+</html>
