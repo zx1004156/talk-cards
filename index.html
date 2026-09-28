@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>話匣子｜對話卡牌</title>
+<script>
+try{ var t = localStorage.getItem("huaxiazi-theme"); if(t==="light"||t==="dark") document.documentElement.setAttribute("data-theme", t); }catch(e){}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -16,6 +19,7 @@
   --display:"Huninn","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
   --ui:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
   box-sizing:border-box;
+  color-scheme:light dark;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
@@ -25,7 +29,8 @@
     --light:#6FBFAC; --medium:#E3A83A; --deep:#5A60C0; --any:#3A4252; --danger:#F2B8B5;
   }
 }
-:root[data-theme="dark"]{
+:root[data-theme="light"]{color-scheme:light}
+:root[data-theme="dark"]{color-scheme:dark;
   --bg:#14171D; --surface:#1E232C; --ink:#E8ECF2; --muted:#9AA3B2; --line:#2F3642;
   --light:#6FBFAC; --medium:#E3A83A; --deep:#5A60C0; --any:#3A4252; --danger:#F2B8B5;
 }
@@ -39,6 +44,9 @@ button{cursor:pointer;touch-action:manipulation}
 
 header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
 h1{font-family:var(--display);font-weight:400;font-size:2.4rem;line-height:1;margin:0;letter-spacing:.04em}
+.head-right{display:flex;align-items:center;gap:8px}
+.theme-btn{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;color:var(--muted);font-size:.9rem;line-height:1}
+.theme-btn .ico{font-size:1.05rem;color:var(--ink)}
 .tabs{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
 .tabs button{border:0;background:none;padding:6px 18px;border-radius:999px;color:var(--muted)}
 .tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
@@ -55,7 +63,7 @@ h1{font-family:var(--display);font-weight:400;font-size:2.4rem;line-height:1;mar
 
 /* the card */
 .stage{perspective:1400px;display:flex;justify-content:center;margin:8px 0 18px}
-.card{width:min(100%,360px);aspect-ratio:5/7;position:relative;cursor:pointer;border:0;padding:0;background:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.card{width:max(210px,min(100%,360px,calc((100svh - 330px) * .714)));aspect-ratio:5/7;container-type:inline-size;position:relative;cursor:pointer;border:0;padding:0;background:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .card .inner,.card .face,.card .face *{pointer-events:none}
 .card .inner{position:absolute;inset:0;transition:transform .55s cubic-bezier(.3,.7,.2,1);transform-style:preserve-3d}
 .card.flipped .inner{transform:rotateY(180deg)}
@@ -64,12 +72,12 @@ h1{font-family:var(--display);font-weight:400;font-size:2.4rem;line-height:1;mar
 .back::before{content:"";position:absolute;inset:14px;border-radius:14px;border:2px solid currentColor;opacity:.35}
 .back .pattern{position:absolute;inset:0;opacity:.14;background-image:radial-gradient(currentColor 2px,transparent 2.5px);background-size:22px 22px}
 .back .mark{position:relative;text-align:center}
-.back .mark span{display:block;font-family:var(--display);font-size:3.2rem;line-height:1.1;letter-spacing:.08em}
+.back .mark span{display:block;font-family:var(--display);font-size:clamp(2rem,16cqi,3.2rem);line-height:1.1;letter-spacing:.08em}
 .back .mark small{opacity:.8}
 .front{transform:rotateY(180deg);background:var(--fc,var(--any));color:var(--fc-on,var(--on-any));display:flex;flex-direction:column;padding:22px 24px}
 .corner{font-family:var(--display);font-size:1.6rem;line-height:1}
 .corner.bottom{align-self:flex-end;transform:rotate(180deg)}
-.qtext{flex:1;display:flex;align-items:center;font-family:var(--display);font-size:clamp(1.3rem,5.4vw,1.75rem);line-height:1.55;overflow-wrap:anywhere;text-align:left}
+.qtext{flex:1;display:flex;align-items:center;font-family:var(--display);font-size:clamp(1.05rem,7.4cqi,1.75rem);line-height:1.55;overflow-wrap:anywhere;text-align:left}
 .badges{display:flex;gap:6px;flex-wrap:wrap;min-height:26px}
 .badge{font-size:.78rem;padding:2px 10px;border-radius:999px;border:1.5px solid currentColor;white-space:nowrap}
 .hint{text-align:center;color:var(--muted);font-size:.9rem;margin:-6px 0 14px;min-height:1.6em}
@@ -107,6 +115,10 @@ select{border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;backgr
 
 @media (max-width:480px){
   h1{font-size:2rem}
+  .wrap{padding-top:14px}
+  header{margin-bottom:14px}
+  .theme-btn .lbl{display:none}
+  .theme-btn{padding:8px 11px}
   .levels button small{display:none}
   .list li{grid-template-columns:6px 1fr}
   .list .ops{grid-column:2}
@@ -120,9 +132,12 @@ select{border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;backgr
 <div class="wrap">
   <header>
     <h1>話匣子</h1>
-    <div class="tabs" role="tablist">
-      <button role="tab" id="tab-play" aria-selected="true">抽牌</button>
-      <button role="tab" id="tab-manage" aria-selected="false">題庫</button>
+    <div class="head-right">
+      <button class="theme-btn" id="theme-btn" type="button"><span class="ico" id="theme-ico" aria-hidden="true">◐</span><span class="lbl" id="theme-lbl">跟隨系統</span></button>
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tab-play" aria-selected="true">抽牌</button>
+        <button role="tab" id="tab-manage" aria-selected="false">題庫</button>
+      </div>
     </div>
   </header>
 
@@ -619,6 +634,33 @@ async function doImport(){
   $("io-msg").textContent = `已匯入 ${n} 題。`;
   if(n){ $("import-text").value = ""; }
 }
+
+/* ---------- theme ---------- */
+const THEME_KEY = "huaxiazi-theme";
+const THEMES = [
+  {id:"system", ico:"◐", name:"跟隨系統"},
+  {id:"light",  ico:"☀", name:"淺色"},
+  {id:"dark",   ico:"☾", name:"深色"},
+];
+let theme = "system";
+try{ const t = localStorage.getItem(THEME_KEY); if(t==="light"||t==="dark") theme = t; }catch(e){}
+function applyTheme(){
+  const root = document.documentElement;
+  if(theme==="system") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", theme);
+  const t = THEMES.find(x=>x.id===theme);
+  const next = THEMES[(THEMES.indexOf(t)+1) % THEMES.length];
+  $("theme-ico").textContent = t.ico;
+  $("theme-lbl").textContent = t.name;
+  $("theme-btn").setAttribute("aria-label", `外觀：${t.name}，點一下切換成${next.name}`);
+  $("theme-btn").title = `外觀：${t.name}（點一下切換成${next.name}）`;
+}
+$("theme-btn").onclick = () => {
+  const i = THEMES.findIndex(x=>x.id===theme);
+  theme = THEMES[(i+1) % THEMES.length].id;
+  try{ if(theme==="system") localStorage.removeItem(THEME_KEY); else localStorage.setItem(THEME_KEY, theme); }catch(e){}
+  applyTheme();
+};
+applyTheme();
 
 /* ---------- wiring ---------- */
 function onData(){ renderManage(); updateHint(); }
