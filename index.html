@@ -19,15 +19,9 @@ try{ var t = localStorage.getItem("huaxiazi-theme"); if(t==="light"||t==="dark")
   --display:"Huninn","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
   --ui:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
   box-sizing:border-box;
-  color-scheme:light dark;
+  color-scheme:light;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#14171D; --surface:#1E232C; --ink:#E8ECF2; --muted:#9AA3B2; --line:#2F3642;
-    --light:#6FBFAC; --medium:#E3A83A; --deep:#5A60C0; --any:#3A4252; --danger:#F2B8B5;
-  }
 }
 :root[data-theme="light"]{color-scheme:light}
 :root[data-theme="dark"]{color-scheme:dark;
@@ -56,6 +50,7 @@ h1{font-family:var(--display);font-weight:400;font-size:2.4rem;line-height:1;mar
 .levels button b{display:block;font-family:var(--display);font-weight:400;font-size:1.15rem}
 .levels button small{color:var(--muted);font-size:.75rem}
 .levels button[aria-pressed="true"]{border-color:var(--ink)}
+.levels button.empty-level{opacity:.45}
 .levels .sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:1px}
 
 .toggles{display:flex;gap:16px;flex-wrap:wrap;margin:6px 0 18px;color:var(--muted);font-size:.9rem}
@@ -133,7 +128,7 @@ select{border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;backgr
   <header>
     <h1>話匣子</h1>
     <div class="head-right">
-      <button class="theme-btn" id="theme-btn" type="button"><span class="ico" id="theme-ico" aria-hidden="true">◐</span><span class="lbl" id="theme-lbl">跟隨系統</span></button>
+      <button class="theme-btn" id="theme-btn" type="button"><span class="ico" id="theme-ico" aria-hidden="true">☀</span><span class="lbl" id="theme-lbl">淺色</span></button>
       <div class="tabs" role="tablist">
         <button role="tab" id="tab-play" aria-selected="true">抽牌</button>
         <button role="tab" id="tab-manage" aria-selected="false">題庫</button>
@@ -381,7 +376,7 @@ const STARTER = [
  ["medium", "如果你的人生目前是一道料理，會是什麼菜？還差什麼調味？", 1, 0]
 ].map((r,i)=>({id:STARTER_IDS[i],level:r[0],text:r[1],humor:!!r[2],guess:!!r[3],createdAt:i}));
 
-const LS_KEY = "huaxiazi-questions-v2", LS_OLD = "huaxiazi-questions-v1";
+const LS_KEY = "huaxiazi-questions-v3", LS_V2 = "huaxiazi-questions-v2", LS_OLD = "huaxiazi-questions-v1";
 const $ = id => document.getElementById(id);
 
 let questions = [];
@@ -392,21 +387,50 @@ let drawn = new Set(), current = null, flipped = false, lockUntil = 0, flipTimer
 let editingId = null, pendingDelete = null;
 
 /* ---------- storage ---------- */
+// The browser keeps its own copy of the question bank. When this file ships a newer
+// built-in list, built-in questions the person never edited are refreshed; their own
+// questions, edits and deletions are kept.
+const pick = q => ({text:q.text, level:q.level, humor:!!q.humor, guess:!!q.guess});
+const same = (a,b) => a && b && a.text===b.text && a.level===b.level && !!a.humor===!!b.humor && !!a.guess===!!b.guess;
+function starterBase(){ const m = {}; for(const q of STARTER) m[q.id] = pick(q); return m; }
+function mergeWithStarter(list, base){
+  const st = new Map(STARTER.map(q=>[q.id,q]));
+  const out = [], have = new Set();
+  for(const q of list){
+    if(!q || typeof q.text!=="string") continue;
+    const cur = st.get(q.id);
+    if(cur && !(base && base[q.id] && !same(q, base[q.id]))) out.push({...cur});   // unedited built-in -> newest version
+    else out.push(q);                                                              // edited built-in or own question
+    have.add(q.id);
+  }
+  for(const q of STARTER){
+    if(have.has(q.id)) continue;
+    if(!base || base[q.id]) continue;   // was there before and got deleted: keep it deleted
+    out.push({...q});                   // brand-new built-in question
+  }
+  return out;
+}
+function readJSON(k){ try{ return JSON.parse(localStorage.getItem(k) || "null"); }catch(e){ return null; } }
 function lsLoad(){
-  try{ const v = localStorage.getItem(LS_KEY); if(v){ const a = JSON.parse(v); if(Array.isArray(a)) return a; } }catch(e){}
-  let list = STARTER.map(q=>({...q}));
-  // keep questions added in the older version of this file
-  try{
-    const o = JSON.parse(localStorage.getItem(LS_OLD) || "null");
-    if(Array.isArray(o)){
-      const texts = new Set(list.map(q=>q.text));
-      for(const q of o){ if(q && q.text && !texts.has(q.text)){ list.push(q); texts.add(q.text); } }
+  let list;
+  const v3 = readJSON(LS_KEY);
+  if(v3 && Array.isArray(v3.list)) list = mergeWithStarter(v3.list, v3.base || {});
+  else {
+    const v2 = readJSON(LS_V2);
+    if(Array.isArray(v2)) list = mergeWithStarter(v2, null);
+    else {
+      list = STARTER.map(q=>({...q}));
+      const o = readJSON(LS_OLD);          // questions added in the very first version
+      if(Array.isArray(o)){
+        const texts = new Set(list.map(q=>q.text));
+        for(const q of o){ if(q && q.text && !texts.has(q.text)){ list.push(q); texts.add(q.text); } }
+      }
     }
-  }catch(e){}
-  try{ localStorage.setItem(LS_KEY, JSON.stringify(list)); }catch(e){}
+  }
+  questions = list; lsSave();
   return list;
 }
-function lsSave(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(questions)); }catch(e){} }
+function lsSave(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({base: starterBase(), list: questions})); }catch(e){} }
 
 function useLocal(){
   mode = "local"; questions = lsLoad(); onData();
@@ -458,15 +482,19 @@ function renderLevels(){
     b.setAttribute("aria-pressed", String(level===k));
     const sw = document.createElement("span"); sw.className="sw"; sw.style.background = `var(--${color})`;
     const t = document.createElement("b"); t.append(sw, name);
-    const s = document.createElement("small"); s.textContent = hint;
+    const s = document.createElement("small");
+    const n = mode==="loading" ? null : poolFor(k).length;
+    s.textContent = (onlyHumor || onlyGuess) && n !== null ? `${n} 張` : hint;
+    if(n === 0) b.classList.add("empty-level");
     b.append(t, s);
     b.onclick = () => { level = k; renderLevels(); resetDeck(); };
     box.append(b);
   }
 }
-function pool(){
-  return questions.filter(q => (level==="all" || q.level===level) && (!onlyHumor || q.humor) && (!onlyGuess || q.guess));
+function poolFor(lv){
+  return questions.filter(q => (lv==="all" || q.level===lv) && (!onlyHumor || q.humor) && (!onlyGuess || q.guess));
 }
+function pool(){ return poolFor(level); }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function resetDeck(){
   clearTimeout(flipTimer); lockUntil = 0;
@@ -482,7 +510,16 @@ function remaining(){
 function updateHint(){
   const p = pool().length;
   if(mode==="loading"){ $("hint").textContent = "載入題庫中…"; $("draw").disabled = true; return; }
-  if(!p){ $("hint").textContent = "這個組合沒有題目，換個層級或到「題庫」新增吧"; $("draw").disabled = true; return; }
+  if(!p){
+    const lvName = level==="all" ? "" : LEVELS[level].name;
+    const f = [onlyHumor ? "幽默題" : "", onlyGuess ? "猜猜看" : ""].filter(Boolean);
+    const box = [onlyHumor ? "「只抽幽默題」" : "", onlyGuess ? "「只抽猜猜看」" : ""].filter(Boolean).join("或");
+    $("hint").textContent = f.length
+      ? `${lvName}目前沒有${f.join("又是")}的題目，取消勾選${box}就能繼續抽`
+      : "這裡還沒有題目，到「題庫」新增吧";
+    $("draw").textContent = "抽一張";
+    $("draw").disabled = true; return;
+  }
   $("draw").disabled = false;
   $("draw").textContent = current ? "下一張" : "抽一張";
   const r = remaining();
@@ -638,15 +675,14 @@ async function doImport(){
 /* ---------- theme ---------- */
 const THEME_KEY = "huaxiazi-theme";
 const THEMES = [
-  {id:"system", ico:"◐", name:"跟隨系統"},
-  {id:"light",  ico:"☀", name:"淺色"},
-  {id:"dark",   ico:"☾", name:"深色"},
+  {id:"light", ico:"☀", name:"淺色"},
+  {id:"dark",  ico:"☾", name:"深色"},
 ];
-let theme = "system";
-try{ const t = localStorage.getItem(THEME_KEY); if(t==="light"||t==="dark") theme = t; }catch(e){}
+let theme = "light";
+try{ if(localStorage.getItem(THEME_KEY)==="dark") theme = "dark"; }catch(e){}
 function applyTheme(){
   const root = document.documentElement;
-  if(theme==="system") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", theme);
+  root.setAttribute("data-theme", theme);
   const t = THEMES.find(x=>x.id===theme);
   const next = THEMES[(THEMES.indexOf(t)+1) % THEMES.length];
   $("theme-ico").textContent = t.ico;
@@ -657,13 +693,13 @@ function applyTheme(){
 $("theme-btn").onclick = () => {
   const i = THEMES.findIndex(x=>x.id===theme);
   theme = THEMES[(i+1) % THEMES.length].id;
-  try{ if(theme==="system") localStorage.removeItem(THEME_KEY); else localStorage.setItem(THEME_KEY, theme); }catch(e){}
+  try{ localStorage.setItem(THEME_KEY, theme); }catch(e){}
   applyTheme();
 };
 applyTheme();
 
 /* ---------- wiring ---------- */
-function onData(){ renderManage(); updateHint(); }
+function onData(){ renderManage(); renderLevels(); updateHint(); }
 function showTab(which){
   const play = which==="play";
   $("tab-play").setAttribute("aria-selected", String(play));
@@ -676,8 +712,8 @@ $("tab-manage").onclick = ()=>showTab("manage");
 $("card").onclick = draw;
 $("draw").onclick = draw;
 $("shuffle").onclick = resetDeck;
-$("only-humor").onchange = e=>{ onlyHumor = e.target.checked; resetDeck(); };
-$("only-guess").onchange = e=>{ onlyGuess = e.target.checked; resetDeck(); };
+$("only-humor").onchange = e=>{ onlyHumor = e.target.checked; renderLevels(); resetDeck(); };
+$("only-guess").onchange = e=>{ onlyGuess = e.target.checked; renderLevels(); resetDeck(); };
 $("f-save").onclick = submit;
 $("f-cancel").onclick = ()=>{ stopEdit(); $("f-msg").textContent=""; };
 $("list-filter").onchange = renderManage;
