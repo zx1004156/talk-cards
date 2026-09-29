@@ -5,11 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>話匣子｜對話卡牌</title>
 <script>
-try{ var t = localStorage.getItem("huaxiazi-theme"); if(t==="light"||t==="dark") document.documentElement.setAttribute("data-theme", t); }catch(e){}
+try{ var t = localStorage.getItem("huaxiazi-theme"); if(t==="light"||t==="dark") document.documentElement.setAttribute("data-theme", t);
+  var l = localStorage.getItem("huaxiazi-lang"); if(l==="ja"||l==="en") document.documentElement.lang = l; }catch(e){}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Zen+Maru+Gothic:wght@500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#E9EDF1; --surface:#FFFFFF; --ink:#1C2230; --muted:#5A6272; --line:#CDD4DD;
@@ -121,17 +122,28 @@ select{border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;backgr
 @media (prefers-reduced-motion: reduce){
   .card .inner{transition:none}
 }
+:root[lang="ja"]{--display:"Zen Maru Gothic","Noto Sans JP","Hiragino Sans",sans-serif;--ui:"Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif}
+:root[lang="en"]{--display:"Nunito","Huninn",system-ui,sans-serif;--ui:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif}
+:root[lang="en"] .back .mark span{font-size:clamp(1.6rem,11cqi,2.4rem);letter-spacing:.02em}
+.levels button b{white-space:nowrap}
+.lang-btn{font-weight:700;min-width:44px;justify-content:center;color:var(--ink)}
+.field{display:block;margin-top:12px}
+.field span{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+.field textarea{min-height:64px}
+.list .tr{font-size:.85rem;color:var(--muted);overflow-wrap:anywhere}
+@media (max-width:480px){ .levels button b{font-size:.98rem} .levels button{padding:9px 2px} }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>話匣子</h1>
+    <h1 data-i18n="title">話匣子</h1>
     <div class="head-right">
+      <button class="theme-btn lang-btn" id="lang-btn" type="button">中</button>
       <button class="theme-btn" id="theme-btn" type="button"><span class="ico" id="theme-ico" aria-hidden="true">☀</span><span class="lbl" id="theme-lbl">淺色</span></button>
       <div class="tabs" role="tablist">
-        <button role="tab" id="tab-play" aria-selected="true">抽牌</button>
-        <button role="tab" id="tab-manage" aria-selected="false">題庫</button>
+        <button role="tab" id="tab-play" aria-selected="true" data-i18n="tabPlay">抽牌</button>
+        <button role="tab" id="tab-manage" aria-selected="false" data-i18n="tabManage">題庫</button>
       </div>
     </div>
   </header>
@@ -140,16 +152,16 @@ select{border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;backgr
   <section id="view-play">
     <div class="levels" id="levels"></div>
     <div class="toggles">
-      <label><input type="checkbox" id="only-humor"> 只抽幽默題 ★</label>
-      <label><input type="checkbox" id="only-guess"> 只抽猜猜看</label>
+      <label><input type="checkbox" id="only-humor"> <span data-i18n="onlyHumor">只抽幽默題 ★</span></label>
+      <label><input type="checkbox" id="only-guess"> <span data-i18n="onlyGuess">只抽猜猜看</span></label>
     </div>
 
     <div class="stage">
-      <button class="card" id="card" aria-live="polite" aria-label="抽一張牌">
+      <button class="card" id="card" aria-live="polite" data-i18n-aria="cardAria">
         <div class="inner">
           <div class="face back" id="back">
             <div class="pattern"></div>
-            <div class="mark"><span>話匣子</span><small id="back-label">隨機</small></div>
+            <div class="mark"><span data-i18n="title">話匣子</span><small id="back-label"></small></div>
           </div>
           <div class="face front" id="front">
             <div class="corner" id="corner-top"></div>
@@ -160,78 +172,74 @@ select{border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;backgr
         </div>
       </button>
     </div>
-    <p class="hint" id="hint">點牌或按「抽一張」開始</p>
+    <p class="hint" id="hint"></p>
     <div class="actions">
-      <button class="btn" id="draw">抽一張</button>
-      <button class="btn ghost" id="shuffle">重新洗牌</button>
+      <button class="btn" id="draw"></button>
+      <button class="btn ghost" id="shuffle" data-i18n="shuffle">重新洗牌</button>
     </div>
 
     <details class="rules">
-      <summary>建議玩法</summary>
-      <ol>
-        <li>從輕度開始，聊熱了再往中度、深度走。</li>
-        <li>抽牌的人先問，問完自己也要回答同一題。</li>
-        <li>任何人都可以說「跳過」，不需要解釋。</li>
-        <li>猜猜看卡：先猜對方的答案，再請他公布。老朋友玩特別有趣。</li>
-        <li>深度題聊得太沉時，可以切回輕度，勾選「只抽幽默題」抽幾張，讓氣氛輕鬆一下。</li>
-      </ol>
+      <summary data-i18n="rulesTitle">建議玩法</summary>
+      <ol id="rules"></ol>
     </details>
   </section>
 
   <!-- MANAGE -->
   <section id="view-manage" hidden>
-    <p class="status" id="status">載入題庫中…</p>
-    <div class="notice" id="ro-notice" hidden>這份題庫目前是唯讀的，你可以抽牌，但無法新增或修改題目。</div>
+    <p class="status" id="status"></p>
+    <div class="notice" id="ro-notice" hidden data-i18n="roNotice"></div>
 
     <div class="panel" id="editor">
-      <h2 id="editor-title">新增題目</h2>
-      <textarea id="f-text" placeholder="例如：你最近一次熬夜是為了什麼？" maxlength="200"></textarea>
+      <h2 id="editor-title"></h2>
+      <label class="field"><span data-i18n="fZh"></span><textarea id="f-text" maxlength="200" data-i18n-ph="phZh"></textarea></label>
+      <label class="field"><span data-i18n="fJa"></span><textarea id="f-ja" maxlength="200" data-i18n-ph="phJa"></textarea></label>
+      <label class="field"><span data-i18n="fEn"></span><textarea id="f-en" maxlength="300" data-i18n-ph="phEn"></textarea></label>
       <div class="row">
-        <select id="f-level" aria-label="層級">
-          <option value="light">輕度</option>
-          <option value="medium">中度</option>
-          <option value="deep">深度</option>
+        <select id="f-level" data-i18n-aria="levelAria">
+          <option value="light"></option>
+          <option value="medium"></option>
+          <option value="deep"></option>
         </select>
-        <label><input type="checkbox" id="f-humor"> 幽默 ★</label>
-        <label><input type="checkbox" id="f-guess"> 猜猜看</label>
+        <label><input type="checkbox" id="f-humor"> <span data-i18n="humorLabel"></span></label>
+        <label><input type="checkbox" id="f-guess"> <span data-i18n="guessLabel"></span></label>
       </div>
       <div class="actions" style="justify-content:flex-start">
-        <button class="btn" id="f-save">新增題目</button>
-        <button class="btn ghost" id="f-cancel" hidden>取消</button>
+        <button class="btn" id="f-save"></button>
+        <button class="btn ghost" id="f-cancel" hidden data-i18n="cancel"></button>
       </div>
       <p class="hint" id="f-msg" style="text-align:left;margin:10px 0 0"></p>
     </div>
 
     <div class="panel">
       <div class="row" style="margin-top:0;justify-content:space-between">
-        <h2 style="margin:0" id="list-title">題目</h2>
-        <select id="list-filter" aria-label="篩選層級">
-          <option value="all">全部層級</option>
-          <option value="light">輕度</option>
-          <option value="medium">中度</option>
-          <option value="deep">深度</option>
+        <h2 style="margin:0" id="list-title"></h2>
+        <select id="list-filter" data-i18n-aria="levelAria">
+          <option value="all" data-i18n="filterAll"></option>
+          <option value="light"></option>
+          <option value="medium"></option>
+          <option value="deep"></option>
         </select>
       </div>
       <ul class="list" id="list"></ul>
     </div>
 
     <div class="panel">
-      <h2>備份與匯入</h2>
-      <p class="meta" style="color:var(--muted);margin:0 0 10px;font-size:.9rem">匯出成文字可以備份或分享給朋友；貼上別人的題庫文字即可匯入（會加在現有題目之後）。</p>
+      <h2 data-i18n="ioTitle"></h2>
+      <p class="meta" style="color:var(--muted);margin:0 0 10px;font-size:.9rem" data-i18n="ioDesc"></p>
       <div class="actions" style="justify-content:flex-start">
-        <button class="btn ghost small" id="btn-export">匯出題庫</button>
-        <button class="btn ghost small" id="btn-import">匯入題目</button>
+        <button class="btn ghost small" id="btn-export" data-i18n="export"></button>
+        <button class="btn ghost small" id="btn-import" data-i18n="import"></button>
       </div>
       <div class="io" id="export-box">
         <textarea id="export-text" readonly rows="6"></textarea>
         <div class="actions" style="justify-content:flex-start;margin-top:8px">
-          <button class="btn small" id="btn-copy">複製</button>
+          <button class="btn small" id="btn-copy" data-i18n="copy"></button>
         </div>
       </div>
       <div class="io" id="import-box">
-        <textarea id="import-text" rows="6" placeholder='[{"text":"題目內容","level":"light","humor":false,"guess":false}]'></textarea>
+        <textarea id="import-text" rows="6" placeholder='[{"text":"題目內容","ja":"","en":"","level":"light","humor":false,"guess":false}]'></textarea>
         <div class="actions" style="justify-content:flex-start;margin-top:8px">
-          <button class="btn small" id="btn-do-import">匯入</button>
+          <button class="btn small" id="btn-do-import" data-i18n="doImport"></button>
         </div>
       </div>
       <p class="hint" id="io-msg" style="text-align:left;margin:10px 0 0"></p>
@@ -240,162 +248,246 @@ select{border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;backgr
 </div>
 
 <script>
-const LEVELS = {
-  light:  {name:"輕度", short:"輕", hint:"暖身破冰"},
-  medium: {name:"中度", short:"中", hint:"經歷與想法"},
-  deep:   {name:"深度", short:"深", hint:"價值與內心"},
+/* ---------- language ---------- */
+const LANGS = ["zh","ja","en"];
+const HTML_LANG = {zh:"zh-Hant", ja:"ja", en:"en"};
+const LANG_KEY = "huaxiazi-lang";
+let lang = "zh";
+try{ const l = localStorage.getItem(LANG_KEY); if(LANGS.includes(l)) lang = l; }catch(e){}
+
+const LEVEL_TEXT = {
+  zh:{all:["隨機","三種混合"], light:["輕度","暖身破冰","輕"], medium:["中度","經歷與想法","中"], deep:["深度","價值與內心","深"]},
+  ja:{all:["ランダム","3つをミックス"], light:["軽め","打ち解ける","軽"], medium:["普通","経験と考え","普"], deep:["深め","価値観と本音","深"]},
+  en:{all:["Random","All levels mixed"], light:["Light","Warm-up","L"], medium:["Medium","Stories & views","M"], deep:["Deep","Values & heart","D"]},
 };
-// Offline starter deck, used only when the shared question bank isn't available.
+const STR = {
+  zh:{
+    langBtn:"中", langName:"中文", title:"話匣子", docTitle:"話匣子｜對話卡牌", tabPlay:"抽牌", tabManage:"題庫",
+    onlyHumor:"只抽幽默題 ★", onlyGuess:"只抽猜猜看", cardAria:"抽一張牌", draw:"抽一張", next:"下一張", shuffle:"重新洗牌",
+    loading:"載入題庫中…", hintStart:n=>`共 ${n} 張，點牌或按「抽一張」開始`, hintLeft:n=>`這一輪還剩 ${n} 張`,
+    hintDone:"這一輪抽完了，下一張會重新洗牌",
+    emptyFilter:(lv,h,g)=>`${lv}目前沒有符合條件的題目，取消勾選${[h?"「只抽幽默題」":"",g?"「只抽猜猜看」":""].filter(Boolean).join("或")}就能繼續抽`,
+    emptyAll:"這裡還沒有題目，到「題庫」新增吧", badgeHumor:"★ 幽默", badgeGuess:"猜猜看", count:n=>`${n} 張`,
+    rulesTitle:"建議玩法",
+    rules:["從輕度開始，聊熱了再往中度、深度走。","抽牌的人先問，問完自己也要回答同一題。","任何人都可以說「跳過」，不需要解釋。","猜猜看卡：先猜對方的答案，再請他公布。老朋友玩特別有趣。","深度題聊得太沉時，可以切回輕度，勾選「只抽幽默題」抽幾張，讓氣氛輕鬆一下。"],
+    statusDb:n=>`共 ${n} 題，改動會自動存到這個頁面，分享給朋友也看得到。`, statusLocal:n=>`共 ${n} 題，存在這台裝置的瀏覽器裡。`, statusMissing:n=>"",
+    roNotice:"這份題庫目前是唯讀的，你可以抽牌，但無法新增或修改題目。",
+    editorAdd:"新增題目", editorEdit:"修改題目", fZh:"中文（必填）", fJa:"日文（選填）", fEn:"英文（選填）",
+    phZh:"例如：你最近一次熬夜是為了什麼？", phJa:"例：最近夜ふかししたのはどうして？", phEn:"e.g. What kept you up late recently?",
+    levelAria:"層級", humorLabel:"幽默 ★", guessLabel:"猜猜看", saveAdd:"新增題目", saveEdit:"儲存修改", cancel:"取消",
+    needText:"先寫下中文題目內容。", saved:"已儲存修改。", added:lv=>`已新增到${lv}。`, saveFail:"沒有存成功，請稍後再試一次。",
+    listTitle:n=>`題目（${n}）`, filterAll:"全部層級", listEmpty:"這裡還沒有題目，從上面新增第一題吧。",
+    edit:"編輯", del:"刪除", delConfirm:"確定刪除", noTr:"",
+    ioTitle:"備份與匯入", ioDesc:"匯出成文字可以備份或分享給朋友；貼上別人的題庫文字即可匯入（會加在現有題目之後）。",
+    export:"匯出題庫", import:"匯入題目", copy:"複製", doImport:"匯入", copied:"已複製。", copyManual:"已全選，請手動複製。",
+    importBad:"格式看不懂，請貼上從「匯出題庫」複製的文字。", importNone:"沒有可以匯入的新題目（重複的題目會自動略過）。", importDone:n=>`已匯入 ${n} 題。`,
+    themeLight:"淺色", themeDark:"深色", themeAria:(c,n)=>`外觀：${c}，點一下切換成${n}`, langAria:n=>`語言：中文，點一下切換成${n}`,
+  },
+  ja:{
+    langBtn:"日", langName:"日本語", title:"話匣子", docTitle:"話匣子｜会話カード", tabPlay:"カード", tabManage:"質問リスト",
+    onlyHumor:"ユーモアのみ ★", onlyGuess:"当ててみようのみ", cardAria:"カードを引く", draw:"1枚引く", next:"次のカード", shuffle:"シャッフル",
+    loading:"読み込み中…", hintStart:n=>`全${n}枚。カードか「1枚引く」をタップしてスタート`, hintLeft:n=>`このラウンド残り${n}枚`,
+    hintDone:"このラウンドは終わり。次のカードから新しいラウンド",
+    emptyFilter:(lv,h,g)=>`${lv ? lv+"には" : ""}条件に合う質問がありません。${[h?"「ユーモアのみ」":"",g?"「当ててみようのみ」":""].filter(Boolean).join("か")}のチェックを外すと引けます`,
+    emptyAll:"まだ質問がありません。「質問リスト」から追加してね", badgeHumor:"★ ユーモア", badgeGuess:"当ててみよう", count:n=>`${n}枚`,
+    rulesTitle:"おすすめの遊び方",
+    rules:["まずは「軽め」から。場があたたまったら「普通」「深め」へ。","カードを引いた人が質問して、自分も同じ質問に答えよう。","答えたくないときは、誰でも理由なしで「パス」してOK。","当ててみようカード：先に相手の答えを予想してから、本人に答えてもらおう。付き合いの長い友だちほど盛り上がる。","深い話で空気が重くなったら、「軽め」に戻して「ユーモアのみ」で何枚か引いてみよう。"],
+    statusDb:n=>`全${n}問。変更はこのページに自動保存され、共有した友だちにも反映されます。`, statusLocal:n=>`全${n}問。この端末のブラウザに保存されています。`,
+    statusMissing:n=>n?`（うち${n}問は日本語訳がないため、日本語モードでは出てきません）`:"",
+    roNotice:"この質問リストは閲覧専用です。カードは引けますが、質問の追加や編集はできません。",
+    editorAdd:"質問を追加", editorEdit:"質問を編集", fZh:"中国語（必須）", fJa:"日本語（任意）", fEn:"英語（任意）",
+    phZh:"例如：你最近一次熬夜是為了什麼？", phJa:"例：最近夜ふかししたのはどうして？", phEn:"e.g. What kept you up late recently?",
+    levelAria:"レベル", humorLabel:"ユーモア ★", guessLabel:"当ててみよう", saveAdd:"追加する", saveEdit:"変更を保存", cancel:"キャンセル",
+    needText:"中国語の質問文を入力してください。", saved:"変更を保存しました。", added:lv=>`「${lv}」に追加しました。`, saveFail:"保存できませんでした。もう一度試してください。",
+    listTitle:n=>`質問（${n}）`, filterAll:"すべてのレベル", listEmpty:"まだ質問がありません。上から最初の質問を追加してね。",
+    edit:"編集", del:"削除", delConfirm:"本当に削除", noTr:"日本語訳なし",
+    ioTitle:"バックアップと読み込み", ioDesc:"書き出したテキストは、バックアップや友だちとの共有に使えます。ほかの人の質問リストのテキストを貼り付けると読み込めます（今の質問の後ろに追加されます）。",
+    export:"書き出す", import:"読み込む", copy:"コピー", doImport:"読み込む", copied:"コピーしました。", copyManual:"全選択しました。手動でコピーしてください。",
+    importBad:"形式が読み取れません。「書き出す」でコピーしたテキストを貼り付けてください。", importNone:"追加できる新しい質問がありません（重複は自動でスキップされます）。", importDone:n=>`${n}問を読み込みました。`,
+    themeLight:"ライト", themeDark:"ダーク", themeAria:(c,n)=>`表示：${c}（タップで${n}に切り替え）`, langAria:n=>`言語：日本語（タップで${n}に切り替え）`,
+  },
+  en:{
+    langBtn:"EN", langName:"English", title:"Talk Cards", docTitle:"Talk Cards", tabPlay:"Draw", tabManage:"Questions",
+    onlyHumor:"Funny only ★", onlyGuess:"Guess only", cardAria:"Draw a card", draw:"Draw a card", next:"Next card", shuffle:"Reshuffle",
+    loading:"Loading…", hintStart:n=>`${n} ${n===1?"card":"cards"}. Tap the card or "Draw a card" to start`, hintLeft:n=>`${n} ${n===1?"card":"cards"} left this round`,
+    hintDone:"Round complete. The next card starts a new round",
+    emptyFilter:(lv,h,g)=>`No questions match${lv ? " in "+lv : ""}. Uncheck ${[h?"\"Funny only\"":"",g?"\"Guess only\"":""].filter(Boolean).join(" or ")} to keep drawing`,
+    emptyAll:"No questions yet. Add some in Questions", badgeHumor:"★ Funny", badgeGuess:"Guess", count:n=>`${n} ${n===1?"card":"cards"}`,
+    rulesTitle:"How to play",
+    rules:["Start with Light, then move to Medium and Deep as things warm up.","Whoever draws asks the question, then answers it too.","Anyone can say \"pass\" without explaining why.","Guess cards: guess the other person's answer first, then let them reveal it. Extra fun with old friends.","If a deep talk gets heavy, switch back to Light and draw a few with \"Funny only\" checked."],
+    statusDb:n=>`${n} ${n===1?"question":"questions"}. Changes save to this page automatically, and friends you share it with will see them.`, statusLocal:n=>`${n} ${n===1?"question":"questions"}, saved in this device's browser.`,
+    statusMissing:n=>n?` (${n} ${n===1?"has":"have"} no English version and won't appear in English mode.)`:"",
+    roNotice:"This question list is read-only. You can draw cards, but can't add or edit questions.",
+    editorAdd:"Add a question", editorEdit:"Edit question", fZh:"Chinese (required)", fJa:"Japanese (optional)", fEn:"English (optional)",
+    phZh:"例如：你最近一次熬夜是為了什麼？", phJa:"例：最近夜ふかししたのはどうして？", phEn:"e.g. What kept you up late recently?",
+    levelAria:"Level", humorLabel:"Funny ★", guessLabel:"Guess", saveAdd:"Add question", saveEdit:"Save changes", cancel:"Cancel",
+    needText:"Enter the Chinese question text first.", saved:"Changes saved.", added:lv=>`Added to ${lv}.`, saveFail:"Couldn't save. Try again.",
+    listTitle:n=>`Questions (${n})`, filterAll:"All levels", listEmpty:"No questions here yet. Add the first one above.",
+    edit:"Edit", del:"Delete", delConfirm:"Confirm delete", noTr:"No English version",
+    ioTitle:"Backup and import", ioDesc:"Export to text to back up or share with friends. Paste someone else's exported text to import it (added after your current questions).",
+    export:"Export", import:"Import", copy:"Copy", doImport:"Import", copied:"Copied.", copyManual:"Selected. Copy it manually.",
+    importBad:"Couldn't read that. Paste text copied from Export.", importNone:"No new questions to import (duplicates are skipped).", importDone:n=>`Imported ${n} ${n===1?"question":"questions"}.`,
+    themeLight:"Light", themeDark:"Dark", themeAria:(c,n)=>`Appearance: ${c}. Tap to switch to ${n}`, langAria:n=>`Language: English. Tap to switch to ${n}`,
+  },
+};
+const T = () => STR[lang];
+const lvName = (k) => LEVEL_TEXT[lang][k][0];
+const lvHint = (k) => LEVEL_TEXT[lang][k][1];
+const lvShort = (k) => LEVEL_TEXT[lang][k][2];
+function qText(q){ return lang==="zh" ? q.text : (typeof q[lang]==="string" && q[lang].trim() ? q[lang] : null); }
+
+const LEVELS = {light:1, medium:1, deep:1};
+// Built-in questions: [level, Chinese, humor, guess, Japanese, English]
 const STARTER_IDS = ["s01", "s02", "s03", "s04", "s05", "s06", "s07", "s08", "s09", "s10", "s11", "s12", "s13", "s14", "s15", "s16", "s17", "s18", "s19", "s20", "s21", "s22", "s23", "s24", "s25", "s26", "s27", "s28", "s29", "s30", "s31", "s32", "s33", "s34", "s35", "s36", "a001", "a002", "a003", "a004", "a005", "a006", "a007", "a008", "a009", "a010", "a011", "a012", "a013", "a014", "a015", "a016", "a017", "a018", "a019", "a020", "a021", "a022", "a023", "a024", "a025", "a026", "a027", "a028", "a029", "a030", "a031", "a032", "a033", "a034", "a035", "a036", "a037", "a038", "a039", "a040", "a041", "a042", "a043", "a044", "a045", "a046", "a047", "a048", "a049", "a050", "a051", "a052", "a053", "a054", "a055", "a056", "a057", "a058", "a059", "a060", "a061", "a062", "a063", "a064", "a065", "a066", "a067", "a068", "a069", "a070", "a071", "a072", "a073", "a074", "a075", "a076", "a077", "a078", "a079", "a080", "a081", "a082", "a083", "a084", "a085", "a086", "a087", "a088", "a089", "a090", "b001", "b002", "b003", "b004", "b005", "b006", "b007", "b008", "b009", "b010", "b011", "b012", "b013", "b014", "b015", "b016", "b017", "b018", "b019", "b020", "b021"];
 const STARTER = [
- ["light", "這禮拜吃到最好吃的一餐是什麼？", 0, 0],
- ["light", "如果你的人生有背景音樂，現在正在播哪首歌？", 1, 0],
- ["light", "你有什麼莫名其妙的小技能？", 1, 0],
- ["light", "如果明天醒來變成你家附近的一隻動物，你會是誰？", 1, 0],
- ["light", "最近一次覺得「活著真好」是什麼時候？", 0, 0],
- ["light", "這禮拜有什麼讓你會心一笑的小事？", 0, 0],
- ["light", "打開手機相簿，最新的一張照片背後有什麼故事？", 0, 0],
- ["light", "如果你是一種調味料，你會是什麼？為什麼？", 1, 0],
- ["light", "放假一整天，完全不用管任何人，你會怎麼過？", 0, 0],
- ["light", "最近一次笑到停不下來是因為什麼？", 1, 0],
- ["light", "猜猜看對方最常點的飲料是什麼，再請他公布答案。", 0, 1],
- ["light", "二選一：一輩子只能吃拉麵，還是一輩子只能吃咖哩？", 1, 0],
- ["medium", "去過印象最深刻的地方是哪裡？那裡發生了什麼？", 0, 0],
- ["medium", "你做過最丟臉、但現在想起來會笑的事是什麼？", 1, 0],
- ["medium", "你做過最蠢、但當時覺得超聰明的決定是什麼？", 1, 0],
- ["medium", "小時候的夢想是什麼？現在離它多遠？", 0, 0],
- ["medium", "哪個人對你現在的樣子影響最大？", 0, 0],
- ["medium", "有沒有哪個地方讓你想過「乾脆住在這裡算了」？為什麼？", 0, 0],
- ["medium", "別人最常誤會你是什麼樣的人？", 0, 0],
- ["medium", "最近在煩惱的一件事是什麼？", 0, 0],
- ["medium", "如果能傳一則訊息給十年前的自己，但只能用十個字，你會說什麼？", 0, 0],
- ["medium", "你最享受的「一個人的時間」是怎麼過的？", 0, 0],
- ["medium", "猜猜看對方最想去哪個國家旅行，再請他公布答案和原因。", 0, 1],
- ["medium", "你人生中最戲劇化的一次誤會是什麼？", 1, 0],
- ["deep", "改變你人生最大的事件是什麼？", 0, 0],
- ["deep", "你最後悔的事是什麼？", 0, 0],
- ["deep", "你最希望別人怎麼記得你？", 0, 0],
- ["deep", "有沒有一件事，你到現在還沒跟任何人好好說過？", 0, 0],
- ["deep", "你覺得自己這幾年最大的改變是什麼？", 0, 0],
- ["deep", "你最害怕失去的是什麼？", 0, 0],
- ["deep", "什麼時候，你覺得自己最像自己？", 0, 0],
- ["deep", "如果完全不用考慮錢，你會想過什麼樣的人生？", 0, 0],
- ["deep", "你曾經希望被誰原諒，或是原諒過誰？", 0, 0],
- ["deep", "猜猜看對方最珍惜的是什麼，再請他說說你猜得對不對。", 0, 1],
- ["light", "如果你的人生拍成電影，片名會是什麼？誰來演你？", 1, 0],
- ["medium", "如果要替你到目前為止的人生寫一則網路評價，幾顆星？評語是什麼？", 1, 0],
- ["light", "你最近一次衝動購物買了什麼？後悔嗎？", 1, 0],
- ["light", "如果只能帶三樣東西去無人島，你會帶什麼？", 1, 0],
- ["light", "你手機裡最常用的 App 是哪一個？都拿它來做什麼？", 0, 0],
- ["light", "早餐派還是宵夜派？最愛吃什麼？", 0, 0],
- ["light", "小時候最愛看的卡通是什麼？", 0, 0],
- ["light", "如果可以擁有一種超能力，但只能用在生活小事上，你會選什麼？", 1, 0],
- ["light", "你最近迷上的東西是什麼？一首歌、一部劇、一種食物都可以。", 0, 0],
- ["light", "你覺得自己最像哪一種天氣？為什麼？", 0, 0],
- ["light", "有沒有什麼食物是大家都愛、只有你不喜歡的？", 1, 0],
- ["light", "你理想中的週末早晨長什麼樣子？", 0, 0],
- ["light", "如果你開一家店，會賣什麼？店名叫什麼？", 1, 0],
- ["light", "你最常被別人稱讚的地方是什麼？", 0, 0],
- ["light", "貓派、狗派，還是其他動物派？", 0, 0],
- ["light", "最近學會的一件新東西是什麼？", 0, 0],
- ["light", "如果你的個性是一種飲料，會是什麼口味？", 1, 0],
- ["light", "旅行時你是行程規劃派，還是走到哪算到哪？", 0, 0],
- ["light", "你有什麼一定要做才睡得著的小習慣？", 1, 0],
- ["light", "你重看最多次的一部電影或動畫是什麼？", 0, 0],
- ["light", "二選一：一年不能用手機，還是一年不能吃甜食？", 1, 0],
- ["light", "如果今晚可以瞬間移動到任何地方吃晚餐，你會去哪裡？", 0, 0],
- ["light", "你最近一次被陌生人的善意打動是什麼時候？", 0, 0],
- ["light", "你的鬧鐘通常要響幾次，你才會真的起床？", 1, 0],
- ["light", "你家鄉有什麼東西，是你最想推薦給別人的？", 0, 0],
- ["light", "你最喜歡一年中的哪個季節？為什麼？", 0, 0],
- ["light", "猜猜看對方早上起床第一件事做什麼，再請他公布答案。", 0, 1],
- ["light", "猜猜看對方的手機桌布是什麼，再請他拿出來對答案。", 1, 1],
- ["light", "猜猜看對方最拿手的一道料理是什麼，再請他公布答案。", 0, 1],
- ["light", "猜猜看對方小時候最想當什麼，再請他公布答案。", 0, 1],
- ["light", "猜猜看對方最受不了的一件小事是什麼，再請他公布答案。", 0, 1],
- ["light", "猜猜看對方最常去的一家店是哪裡，再請他公布答案。", 0, 1],
- ["medium", "你人生的第一份工作或打工是什麼？從中學到了什麼？", 0, 0],
- ["medium", "最近一次讓你覺得「我長大了」的瞬間是什麼？", 0, 0],
- ["medium", "有什麼東西是你以前很討厭、現在卻喜歡上的？", 0, 0],
- ["medium", "你覺得朋友之間最重要的是什麼？", 0, 0],
- ["medium", "如果可以重新選一次科系或工作，你會選什麼？", 0, 0],
- ["medium", "你最近在努力的一件事是什麼？", 0, 0],
- ["medium", "心情低落的時候，你通常怎麼讓自己打起精神？", 0, 0],
- ["medium", "有沒有一本書、一部電影或一首歌，改變了你看事情的方式？", 0, 0],
- ["medium", "你覺得自己最被低估的優點是什麼？", 0, 0],
- ["medium", "你心中「理想的一天」和「現實的一天」差多少？", 0, 0],
- ["medium", "你曾經為了什麼事勇敢過一次？", 0, 0],
- ["medium", "有什麼是你一直想學、但還沒開始的？是什麼擋住了你？", 0, 0],
- ["medium", "你覺得別人第一次見到你，會有什麼印象？跟真正的你一樣嗎？", 0, 0],
- ["medium", "你遇過最難忘的一位老師或前輩是誰？", 0, 0],
- ["medium", "如果把你的人生分成幾個章節，現在是第幾章？這一章叫什麼？", 0, 0],
- ["medium", "你在什麼樣的環境下最能專心？", 0, 0],
- ["medium", "你最近一次跟人意見不合是為了什麼？後來怎麼解決的？", 0, 0],
- ["medium", "你曾經被誤認成什麼奇怪的身份嗎？", 1, 0],
- ["medium", "你做過最失敗的一道料理是什麼？", 1, 0],
- ["medium", "你講過最尷尬的一句話是什麼？", 1, 0],
- ["medium", "如果朋友要把你介紹給別人，你希望他怎麼說？最怕他怎麼說？", 1, 0],
- ["medium", "你有什麼別人覺得很奇怪、但你堅持不改的習慣？", 1, 0],
- ["medium", "你有沒有迷過什麼現在想起來很難為情的東西？", 1, 0],
- ["medium", "旅行中遇過最離譜的狀況是什麼？", 1, 0],
- ["medium", "猜猜看對方壓力大的時候會做什麼，再請他公布答案。", 0, 1],
- ["medium", "猜猜看對方最佩服的人是誰，再請他公布答案和原因。", 0, 1],
- ["medium", "猜猜看對方最近在煩惱哪一方面的事（工作、感情、家人……），再請他說說看。", 0, 1],
- ["medium", "猜猜看對方最想重新體驗一次的是人生哪個階段，再請他公布答案。", 0, 1],
- ["medium", "猜猜看對方最不擅長的事是什麼，再請他公布答案。", 0, 1],
- ["medium", "猜猜看對方在朋友圈裡通常是什麼角色（開心果、心理輔導員、行程規劃師……），再請他公布。", 1, 1],
- ["deep", "你覺得什麼樣的人生才算是「過得好」？", 0, 0],
- ["deep", "你曾經放棄過什麼很重要的東西嗎？現在怎麼看那個決定？", 0, 0],
- ["deep", "有什麼信念是你以前深信、後來改變了的？", 0, 0],
- ["deep", "你人生中最孤單的一段時間是什麼時候？", 0, 0],
- ["deep", "有沒有一句話，你很想對家人說，卻一直說不出口？", 0, 0],
- ["deep", "你最想對誰好好說一聲謝謝？為什麼？", 0, 0],
- ["deep", "如果只剩一年可以活，你會做哪些不一樣的事？", 0, 0],
- ["deep", "對你來說，「家」是什麼？", 0, 0],
- ["deep", "有沒有哪一刻，你覺得自己真正被理解了？", 0, 0],
- ["deep", "你最不想變成什麼樣的人？", 0, 0],
- ["deep", "你現在的生活，是十年前的你想像的樣子嗎？", 0, 0],
- ["deep", "你最怕被別人發現自己的哪一面？", 0, 0],
- ["deep", "你人生中最勇敢的決定是什麼？", 0, 0],
- ["deep", "有什麼事是你到現在還在學著接受的？", 0, 0],
- ["deep", "你怎麼定義「成功」？這個定義改變過嗎？", 0, 0],
- ["deep", "你覺得自己從父母身上繼承了什麼？有想保留或想改掉的嗎？", 0, 0],
- ["deep", "如果可以跟過去的某個人再見一面，你會想見誰？想說什麼？", 0, 0],
- ["deep", "你希望十年後的自己在過什麼樣的生活？", 0, 0],
- ["deep", "對你來說，什麼是用錢買不到、但你最想要的？", 0, 0],
- ["deep", "什麼事會讓你覺得自己「不夠好」？", 0, 0],
- ["deep", "在場的人身上，有什麼是你想學習的？", 0, 0],
- ["deep", "猜猜看對方人生中最重要的轉折點是什麼，再請他說說看。", 0, 1],
- ["deep", "猜猜看對方最想實現的夢想是什麼，再請他公布答案。", 0, 1],
- ["deep", "猜猜看對方覺得自己最大的優點是什麼，再請他公布答案。", 0, 1],
- ["deep", "猜猜看對方最想對十年前的自己說什麼，再請他公布答案。", 0, 1],
- ["deep", "猜猜看對方在什麼時候最有安全感，再請他說說看。", 0, 1],
- ["medium", "如果你的人生有一個隱藏結局，你希望是什麼？", 0, 0],
- ["medium", "如果把你這個人做成一款遊戲，會是什麼類型？最難的關卡是什麼？", 1, 0],
- ["medium", "如果你的人生有一份說明書，第一頁的注意事項會寫什麼？", 1, 0],
- ["medium", "如果你的人生目前是一道料理，會是什麼菜？還差什麼調味？", 1, 0],
- ["light", "你最近最期待的一件事是什麼？", 0, 0],
- ["light", "這個月有沒有給自己定什麼小目標？", 0, 0],
- ["light", "如果明天突然多出一個月的假期，你第一天會做什麼？", 0, 0],
- ["medium", "五年後的你，最希望已經學會什麼？", 0, 0],
- ["medium", "你現在的生活裡，有什麼是希望一直不要改變的？", 0, 0],
- ["medium", "最近有什麼事，讓你覺得「自己正在變好」？", 0, 0],
- ["medium", "如果一年後回頭看今天，你希望自己已經做了什麼決定？", 0, 0],
- ["medium", "如果可以偷看一個關於未來的答案，你想知道什麼？", 0, 0],
- ["deep", "你現在最放不下的一件事是什麼？", 0, 0],
- ["deep", "你希望老了以後，是個什麼樣的人？", 0, 0],
- ["deep", "有什麼事，你怕再不做就來不及了？", 0, 0],
- ["light", "你最喜歡的一種聲音是什麼？（雨聲、咖啡機的聲音、翻書聲……）", 0, 0],
- ["light", "有沒有什麼味道是別人覺得奇怪、你卻很喜歡的？", 1, 0],
- ["light", "哪一首歌最能代表你的學生時代？", 0, 0],
- ["light", "有沒有一道菜的味道，一吃就會想起家？", 0, 0],
- ["medium", "有沒有什麼味道，會讓你一下子想起某段時期？", 0, 0],
- ["medium", "哪首歌一聽就會想起某個人？是誰？", 0, 0],
- ["medium", "你記憶中最美的一個畫面是什麼？", 0, 0],
- ["medium", "有沒有哪個地方的空氣或氣味，是你到現在都還記得的？", 0, 0],
- ["deep", "有沒有一首歌，你現在已經不太敢聽了？為什麼？", 0, 0],
- ["deep", "如果能再聽見某個人對你說一句話，你想聽誰說、說什麼？", 0, 0]
-].map((r,i)=>({id:STARTER_IDS[i],level:r[0],text:r[1],humor:!!r[2],guess:!!r[3],createdAt:i}));
+ ["light", "這禮拜吃到最好吃的一餐是什麼？", 0, 0, "今週食べた中で、いちばんおいしかったごはんは？", "What was the best meal you had this week?"],
+ ["light", "如果你的人生有背景音樂，現在正在播哪首歌？", 1, 0, "もし人生にBGMがあるなら、今流れてるのはどの曲？", "If your life had background music, what song would be playing right now?"],
+ ["light", "你有什麼莫名其妙的小技能？", 1, 0, "なんでできるのか謎な、ちょっとした特技ってある？", "Do you have a random little skill nobody would expect?"],
+ ["light", "如果明天醒來變成你家附近的一隻動物，你會是誰？", 1, 0, "明日起きたら家の近くの動物になってたとしたら、何になってる？", "If you woke up tomorrow as an animal from your neighborhood, which one would you be?"],
+ ["light", "最近一次覺得「活著真好」是什麼時候？", 0, 0, "最近「生きててよかった」って思ったのはいつ？", "When was the last time you thought, \"It's good to be alive\"?"],
+ ["light", "這禮拜有什麼讓你會心一笑的小事？", 0, 0, "今週、思わずクスッとした小さな出来事は？", "What small thing made you smile this week?"],
+ ["light", "打開手機相簿，最新的一張照片背後有什麼故事？", 0, 0, "スマホのアルバムを開いて、いちばん新しい写真にはどんなストーリーがある？", "Open your photo album. What's the story behind the latest photo?"],
+ ["light", "如果你是一種調味料，你會是什麼？為什麼？", 1, 0, "もし自分が調味料だったら、何になる？その理由は？", "If you were a seasoning, what would you be, and why?"],
+ ["light", "放假一整天，完全不用管任何人，你會怎麼過？", 0, 0, "誰のことも気にしなくていい丸一日の休み、どう過ごす？", "A whole day off with no one to worry about. How would you spend it?"],
+ ["light", "最近一次笑到停不下來是因為什麼？", 1, 0, "最近、笑いが止まらなくなったのはどんなとき？", "What was the last thing that made you laugh so hard you couldn't stop?"],
+ ["light", "猜猜看對方最常點的飲料是什麼，再請他公布答案。", 0, 1, "相手がよく頼む飲み物を当ててみて、本人に答え合わせしてもらおう。", "Guess the other person's go-to drink, then have them reveal the answer."],
+ ["light", "二選一：一輩子只能吃拉麵，還是一輩子只能吃咖哩？", 1, 0, "究極の選択：一生ラーメンしか食べられない、それとも一生カレーしか食べられない？", "Pick one: ramen for the rest of your life, or curry for the rest of your life?"],
+ ["medium", "去過印象最深刻的地方是哪裡？那裡發生了什麼？", 0, 0, "今まで行った中で、いちばん印象に残ってる場所は？そこで何があった？", "What's the most memorable place you've been? What happened there?"],
+ ["medium", "你做過最丟臉、但現在想起來會笑的事是什麼？", 1, 0, "いちばん恥ずかしかったけど、今思い出すと笑えることは？", "What's the most embarrassing thing you've done that makes you laugh now?"],
+ ["medium", "你做過最蠢、但當時覺得超聰明的決定是什麼？", 1, 0, "今思えばバカだけど、当時はすごく賢いと思っていた決断は？", "What's the dumbest decision you've made that felt genius at the time?"],
+ ["medium", "小時候的夢想是什麼？現在離它多遠？", 0, 0, "子どもの頃の夢は何だった？今、その夢からどれくらい離れてる？", "What was your childhood dream? How far are you from it now?"],
+ ["medium", "哪個人對你現在的樣子影響最大？", 0, 0, "今の自分にいちばん影響を与えた人は誰？", "Who has influenced the person you are today the most?"],
+ ["medium", "有沒有哪個地方讓你想過「乾脆住在這裡算了」？為什麼？", 0, 0, "「もうここに住んじゃおうかな」って思った場所はある？どうして？", "Is there a place where you thought, \"Maybe I should just live here\"? Why?"],
+ ["medium", "別人最常誤會你是什麼樣的人？", 0, 0, "人からいちばんよく誤解されるのは、どんなところ？", "What do people most often get wrong about you?"],
+ ["medium", "最近在煩惱的一件事是什麼？", 0, 0, "最近悩んでいることは何？", "What's something you've been worrying about lately?"],
+ ["medium", "如果能傳一則訊息給十年前的自己，但只能用十個字，你會說什麼？", 0, 0, "10年前の自分に10文字だけメッセージを送れるとしたら、何て送る？", "If you could send your self from ten years ago a message of just ten words, what would you say?"],
+ ["medium", "你最享受的「一個人的時間」是怎麼過的？", 0, 0, "いちばん好きな「ひとりの時間」の過ごし方は？", "What's your favorite way to spend time alone?"],
+ ["medium", "猜猜看對方最想去哪個國家旅行，再請他公布答案和原因。", 0, 1, "相手がいちばん旅行したい国を当ててみて、本人に答えと理由を聞いてみよう。", "Guess which country the other person most wants to visit, then have them reveal the answer and why."],
+ ["medium", "你人生中最戲劇化的一次誤會是什麼？", 1, 0, "人生でいちばんドラマみたいだった勘違いは？", "What's the most dramatic misunderstanding you've ever been part of?"],
+ ["deep", "改變你人生最大的事件是什麼？", 0, 0, "人生をいちばん大きく変えた出来事は？", "What event changed your life the most?"],
+ ["deep", "你最後悔的事是什麼？", 0, 0, "いちばん後悔していることは？", "What do you regret the most?"],
+ ["deep", "你最希望別人怎麼記得你？", 0, 0, "周りの人に、どんな人として覚えていてほしい？", "How do you most want people to remember you?"],
+ ["deep", "有沒有一件事，你到現在還沒跟任何人好好說過？", 0, 0, "今まで誰にもちゃんと話したことがないことってある？", "Is there something you've never really talked about with anyone?"],
+ ["deep", "你覺得自己這幾年最大的改變是什麼？", 0, 0, "ここ数年で、自分がいちばん変わったと思うところは？", "What's the biggest way you've changed in the past few years?"],
+ ["deep", "你最害怕失去的是什麼？", 0, 0, "いちばん失うのが怖いものは何？", "What are you most afraid of losing?"],
+ ["deep", "什麼時候，你覺得自己最像自己？", 0, 0, "どんなときに「いちばん自分らしい」と感じる？", "When do you feel most like yourself?"],
+ ["deep", "如果完全不用考慮錢，你會想過什麼樣的人生？", 0, 0, "お金のことを一切考えなくていいなら、どんな人生を送りたい？", "If money were no concern at all, what kind of life would you want to live?"],
+ ["deep", "你曾經希望被誰原諒，或是原諒過誰？", 0, 0, "誰かに許してほしいと思ったこと、または誰かを許したことはある？", "Is there someone you've hoped would forgive you, or someone you've forgiven?"],
+ ["deep", "猜猜看對方最珍惜的是什麼，再請他說說你猜得對不對。", 0, 1, "相手がいちばん大切にしているものを当ててみて、合ってるか本人に聞いてみよう。", "Guess what the other person treasures most, then ask them if you got it right."],
+ ["light", "如果你的人生拍成電影，片名會是什麼？誰來演你？", 1, 0, "もし人生が映画になったら、タイトルは何？誰に自分を演じてほしい？", "If your life were made into a movie, what would the title be? Who would play you?"],
+ ["medium", "如果要替你到目前為止的人生寫一則網路評價，幾顆星？評語是什麼？", 1, 0, "これまでの人生にネットのレビューを書くとしたら、星いくつ？コメントは？", "If you wrote an online review of your life so far, how many stars would it get? What would the review say?"],
+ ["light", "你最近一次衝動購物買了什麼？後悔嗎？", 1, 0, "最近、衝動買いしたものは？後悔してる？", "What was the last thing you bought on impulse? Any regrets?"],
+ ["light", "如果只能帶三樣東西去無人島，你會帶什麼？", 1, 0, "無人島に3つだけ持っていけるなら、何を持っていく？", "If you could only bring three things to a deserted island, what would they be?"],
+ ["light", "你手機裡最常用的 App 是哪一個？都拿它來做什麼？", 0, 0, "スマホでいちばん使ってるアプリは？何に使ってる？", "What app do you use most on your phone? What do you use it for?"],
+ ["light", "早餐派還是宵夜派？最愛吃什麼？", 0, 0, "朝ごはん派？夜食派？いちばん好きなメニューは？", "Are you a breakfast person or a late-night snack person? What's your favorite?"],
+ ["light", "小時候最愛看的卡通是什麼？", 0, 0, "子どもの頃、いちばん好きだったアニメは？", "What was your favorite cartoon as a kid?"],
+ ["light", "如果可以擁有一種超能力，但只能用在生活小事上，你會選什麼？", 1, 0, "超能力をひとつ持てるけど、日常の小さなことにしか使えないとしたら、何を選ぶ？", "If you could have one superpower, but only for small everyday things, what would you pick?"],
+ ["light", "你最近迷上的東西是什麼？一首歌、一部劇、一種食物都可以。", 0, 0, "最近ハマってるものは？曲でもドラマでも食べ物でもOK。", "What are you into lately? A song, a show, a food, anything counts."],
+ ["light", "你覺得自己最像哪一種天氣？為什麼？", 0, 0, "自分をお天気にたとえると、どんな天気？その理由は？", "If you were a kind of weather, what would you be, and why?"],
+ ["light", "有沒有什麼食物是大家都愛、只有你不喜歡的？", 1, 0, "みんなは好きなのに、自分だけ苦手な食べ物ってある？", "Is there a food everyone loves that you just can't stand?"],
+ ["light", "你理想中的週末早晨長什麼樣子？", 0, 0, "理想の休日の朝って、どんな感じ？", "What does your ideal weekend morning look like?"],
+ ["light", "如果你開一家店，會賣什麼？店名叫什麼？", 1, 0, "もしお店を開くなら、何を売る？店の名前は？", "If you opened a shop, what would you sell? What would it be called?"],
+ ["light", "你最常被別人稱讚的地方是什麼？", 0, 0, "人からいちばんよく褒められるところは？", "What do people compliment you on most?"],
+ ["light", "貓派、狗派，還是其他動物派？", 0, 0, "猫派？犬派？それとも別の動物派？", "Cat person, dog person, or some other animal person?"],
+ ["light", "最近學會的一件新東西是什麼？", 0, 0, "最近新しく覚えたことは？", "What's something new you learned recently?"],
+ ["light", "如果你的個性是一種飲料，會是什麼口味？", 1, 0, "自分の性格を飲み物にたとえると、どんな味？", "If your personality were a drink, what flavor would it be?"],
+ ["light", "旅行時你是行程規劃派，還是走到哪算到哪？", 0, 0, "旅行はきっちり計画する派？それとも行き当たりばったり派？", "When you travel, do you plan everything or just go with the flow?"],
+ ["light", "你有什麼一定要做才睡得著的小習慣？", 1, 0, "これをしないと眠れない、っていう習慣はある？", "Do you have a little habit you need to do before you can fall asleep?"],
+ ["light", "你重看最多次的一部電影或動畫是什麼？", 0, 0, "いちばん何度も観た映画やアニメは？", "What movie or anime have you rewatched the most?"],
+ ["light", "二選一：一年不能用手機，還是一年不能吃甜食？", 1, 0, "究極の選択：1年間スマホ禁止、それとも1年間甘いもの禁止？", "Pick one: no phone for a year, or no sweets for a year?"],
+ ["light", "如果今晚可以瞬間移動到任何地方吃晚餐，你會去哪裡？", 0, 0, "今夜どこへでも瞬間移動して晩ごはんを食べられるなら、どこに行く？", "If you could teleport anywhere for dinner tonight, where would you go?"],
+ ["light", "你最近一次被陌生人的善意打動是什麼時候？", 0, 0, "最近、知らない人の優しさに心を動かされたのはいつ？", "When was the last time a stranger's kindness really touched you?"],
+ ["light", "你的鬧鐘通常要響幾次，你才會真的起床？", 1, 0, "目覚ましが何回鳴ったら、ちゃんと起きられる？", "How many times does your alarm have to go off before you actually get up?"],
+ ["light", "你家鄉有什麼東西，是你最想推薦給別人的？", 0, 0, "地元のもので、いちばん人におすすめしたいものは？", "What's the one thing from your hometown you'd most want to recommend to others?"],
+ ["light", "你最喜歡一年中的哪個季節？為什麼？", 0, 0, "一年でいちばん好きな季節は？どうして？", "What's your favorite season of the year? Why?"],
+ ["light", "猜猜看對方早上起床第一件事做什麼，再請他公布答案。", 0, 1, "相手が朝起きていちばん最初にすることを当ててみて、本人に答え合わせしてもらおう。", "Guess the first thing the other person does after waking up, then have them reveal the answer."],
+ ["light", "猜猜看對方的手機桌布是什麼，再請他拿出來對答案。", 1, 1, "相手のスマホの待ち受けを当ててみて、実際に見せてもらおう。", "Guess the other person's phone wallpaper, then have them show it to check."],
+ ["light", "猜猜看對方最拿手的一道料理是什麼，再請他公布答案。", 0, 1, "相手のいちばんの得意料理を当ててみて、本人に答え合わせしてもらおう。", "Guess the other person's best dish to cook, then have them reveal the answer."],
+ ["light", "猜猜看對方小時候最想當什麼，再請他公布答案。", 0, 1, "相手が子どもの頃なりたかったものを当ててみて、本人に答え合わせしてもらおう。", "Guess what the other person wanted to be as a kid, then have them reveal the answer."],
+ ["light", "猜猜看對方最受不了的一件小事是什麼，再請他公布答案。", 0, 1, "相手がどうしても我慢できない小さなことを当ててみて、本人に答え合わせしてもらおう。", "Guess the one little thing the other person can't stand, then have them reveal the answer."],
+ ["light", "猜猜看對方最常去的一家店是哪裡，再請他公布答案。", 0, 1, "相手がいちばんよく行くお店を当ててみて、本人に答え合わせしてもらおう。", "Guess the place the other person goes to most often, then have them reveal the answer."],
+ ["medium", "你人生的第一份工作或打工是什麼？從中學到了什麼？", 0, 0, "人生で最初の仕事やバイトは何だった？そこで何を学んだ？", "What was your first job or part-time job? What did you learn from it?"],
+ ["medium", "最近一次讓你覺得「我長大了」的瞬間是什麼？", 0, 0, "最近「自分、大人になったな」と感じた瞬間は？", "When was the last time you felt, \"Wow, I've grown up\"?"],
+ ["medium", "有什麼東西是你以前很討厭、現在卻喜歡上的？", 0, 0, "昔は大嫌いだったのに、今は好きになったものってある？", "Is there something you used to hate but now love?"],
+ ["medium", "你覺得朋友之間最重要的是什麼？", 0, 0, "友だち同士でいちばん大切なことって何だと思う？", "What do you think matters most in a friendship?"],
+ ["medium", "如果可以重新選一次科系或工作，你會選什麼？", 0, 0, "もう一度学部や仕事を選び直せるなら、何を選ぶ？", "If you could choose your major or career again, what would you pick?"],
+ ["medium", "你最近在努力的一件事是什麼？", 0, 0, "最近がんばっていることは？", "What's something you've been working hard on lately?"],
+ ["medium", "心情低落的時候，你通常怎麼讓自己打起精神？", 0, 0, "落ち込んだとき、どうやって元気を出してる？", "When you're feeling down, how do you cheer yourself up?"],
+ ["medium", "有沒有一本書、一部電影或一首歌，改變了你看事情的方式？", 0, 0, "ものの見方を変えてくれた本や映画、曲はある？", "Is there a book, movie, or song that changed the way you see things?"],
+ ["medium", "你覺得自己最被低估的優點是什麼？", 0, 0, "自分の長所で、いちばん過小評価されてると思うところは？", "What's your most underrated strength?"],
+ ["medium", "你心中「理想的一天」和「現實的一天」差多少？", 0, 0, "「理想の一日」と「現実の一日」って、どれくらい違う？", "How different is your ideal day from your actual day?"],
+ ["medium", "你曾經為了什麼事勇敢過一次？", 0, 0, "何かのために勇気を出したことってある？", "Is there a time you found the courage to do something?"],
+ ["medium", "有什麼是你一直想學、但還沒開始的？是什麼擋住了你？", 0, 0, "ずっとやってみたいのに、まだ始めてないことは？何が邪魔してる？", "What have you always wanted to learn but haven't started yet? What's holding you back?"],
+ ["medium", "你覺得別人第一次見到你，會有什麼印象？跟真正的你一樣嗎？", 0, 0, "初対面の人は、自分にどんな印象を持つと思う？本当の自分と同じ？", "What impression do you think people get when they first meet you? Is it the real you?"],
+ ["medium", "你遇過最難忘的一位老師或前輩是誰？", 0, 0, "今まで出会った中で、いちばん忘れられない先生や先輩は誰？", "Who's the most unforgettable teacher or mentor you've had?"],
+ ["medium", "如果把你的人生分成幾個章節，現在是第幾章？這一章叫什麼？", 0, 0, "人生をいくつかの章に分けるなら、今は第何章？この章のタイトルは？", "If your life were divided into chapters, which chapter are you in now? What's it called?"],
+ ["medium", "你在什麼樣的環境下最能專心？", 0, 0, "どんな環境だといちばん集中できる？", "What kind of environment helps you focus best?"],
+ ["medium", "你最近一次跟人意見不合是為了什麼？後來怎麼解決的？", 0, 0, "最近、誰かと意見が合わなかったのはどんなこと？その後どうなった？", "What was the last thing you disagreed with someone about? How did it get resolved?"],
+ ["medium", "你曾經被誤認成什麼奇怪的身份嗎？", 1, 0, "何か変な人に間違えられたことってある？", "Have you ever been mistaken for someone or something really unexpected?"],
+ ["medium", "你做過最失敗的一道料理是什麼？", 1, 0, "今までで最悪の失敗料理は？", "What's the worst dish you've ever cooked?"],
+ ["medium", "你講過最尷尬的一句話是什麼？", 1, 0, "今まで言った中で、いちばん気まずかった一言は？", "What's the most awkward thing you've ever said?"],
+ ["medium", "如果朋友要把你介紹給別人，你希望他怎麼說？最怕他怎麼說？", 1, 0, "友だちが自分を誰かに紹介するなら、どう言ってほしい？逆にいちばん言われたくないのは？", "If a friend introduced you to someone, how would you want them to describe you? What would you dread them saying?"],
+ ["medium", "你有什麼別人覺得很奇怪、但你堅持不改的習慣？", 1, 0, "人には変だと言われるけど、やめるつもりはない習慣ってある？", "Do you have a habit people find weird that you have no plans to quit?"],
+ ["medium", "你有沒有迷過什麼現在想起來很難為情的東西？", 1, 0, "今思うと恥ずかしいけど、昔ハマってたものってある？", "Is there something you were really into that makes you cringe now?"],
+ ["medium", "旅行中遇過最離譜的狀況是什麼？", 1, 0, "旅行中に遭った、いちばんありえないハプニングは？", "What's the most ridiculous thing that's happened to you while traveling?"],
+ ["medium", "猜猜看對方壓力大的時候會做什麼，再請他公布答案。", 0, 1, "相手がストレスがたまったときに何をするか当ててみて、本人に答え合わせしてもらおう。", "Guess what the other person does when they're stressed, then have them reveal the answer."],
+ ["medium", "猜猜看對方最佩服的人是誰，再請他公布答案和原因。", 0, 1, "相手がいちばん尊敬している人を当ててみて、本人に答えと理由を聞いてみよう。", "Guess who the other person admires most, then have them reveal the answer and why."],
+ ["medium", "猜猜看對方最近在煩惱哪一方面的事（工作、感情、家人……），再請他說說看。", 0, 1, "相手が最近どんなことで悩んでいるか（仕事、恋愛、家族……）当ててみて、本人に話してもらおう。", "Guess what the other person has been worried about lately (work, love, family…), then let them tell you about it."],
+ ["medium", "猜猜看對方最想重新體驗一次的是人生哪個階段，再請他公布答案。", 0, 1, "相手が人生のどの時期をもう一度経験したいか当ててみて、本人に答え合わせしてもらおう。", "Guess which stage of life the other person would most like to relive, then have them reveal the answer."],
+ ["medium", "猜猜看對方最不擅長的事是什麼，再請他公布答案。", 0, 1, "相手がいちばん苦手なことを当ててみて、本人に答え合わせしてもらおう。", "Guess what the other person is worst at, then have them reveal the answer."],
+ ["medium", "猜猜看對方在朋友圈裡通常是什麼角色（開心果、心理輔導員、行程規劃師……），再請他公布。", 1, 1, "相手が友だちの中でどんなポジションか（ムードメーカー、相談役、旅行プランナー……）当ててみて、本人に答え合わせしてもらおう。", "Guess what role the other person plays in their friend group (the funny one, the listener, the trip planner…), then have them reveal it."],
+ ["deep", "你覺得什麼樣的人生才算是「過得好」？", 0, 0, "どんな人生なら「いい人生だった」と言えると思う？", "What kind of life would you call a life well lived?"],
+ ["deep", "你曾經放棄過什麼很重要的東西嗎？現在怎麼看那個決定？", 0, 0, "大切なものを手放したことはある？今はその決断をどう思ってる？", "Have you ever given up something important? How do you see that decision now?"],
+ ["deep", "有什麼信念是你以前深信、後來改變了的？", 0, 0, "昔は強く信じていたけど、あとから考えが変わったことってある？", "Is there something you used to firmly believe but later changed your mind about?"],
+ ["deep", "你人生中最孤單的一段時間是什麼時候？", 0, 0, "人生でいちばん孤独だったのは、いつ頃？", "When was the loneliest time in your life?"],
+ ["deep", "有沒有一句話，你很想對家人說，卻一直說不出口？", 0, 0, "家族に言いたいのに、ずっと言えずにいる言葉ってある？", "Is there something you've wanted to say to your family but never could?"],
+ ["deep", "你最想對誰好好說一聲謝謝？為什麼？", 0, 0, "いちばん「ありがとう」をちゃんと伝えたい人は誰？どうして？", "Who do you most want to properly thank? Why?"],
+ ["deep", "如果只剩一年可以活，你會做哪些不一樣的事？", 0, 0, "もし残りの人生があと1年だけなら、何を変えて過ごす？", "If you only had one year left to live, what would you do differently?"],
+ ["deep", "對你來說，「家」是什麼？", 0, 0, "自分にとって「家」って何？", "What does \"home\" mean to you?"],
+ ["deep", "有沒有哪一刻，你覺得自己真正被理解了？", 0, 0, "本当にわかってもらえたと感じた瞬間ってある？", "Has there been a moment when you felt truly understood?"],
+ ["deep", "你最不想變成什麼樣的人？", 0, 0, "いちばんなりたくないのは、どんな人？", "What kind of person do you least want to become?"],
+ ["deep", "你現在的生活，是十年前的你想像的樣子嗎？", 0, 0, "今の生活は、10年前の自分が想像していた姿？", "Is your life now what you imagined ten years ago?"],
+ ["deep", "你最怕被別人發現自己的哪一面？", 0, 0, "人にいちばん知られたくない自分の一面は？", "What side of yourself are you most afraid of people discovering?"],
+ ["deep", "你人生中最勇敢的決定是什麼？", 0, 0, "人生でいちばん勇気のいった決断は？", "What's the bravest decision you've ever made?"],
+ ["deep", "有什麼事是你到現在還在學著接受的？", 0, 0, "今もまだ受け入れようとしていることってある？", "Is there something you're still learning to accept?"],
+ ["deep", "你怎麼定義「成功」？這個定義改變過嗎？", 0, 0, "自分にとって「成功」って何？その考えは変わったことがある？", "How do you define success? Has that definition ever changed?"],
+ ["deep", "你覺得自己從父母身上繼承了什麼？有想保留或想改掉的嗎？", 0, 0, "親から受け継いだと思うものは何？残したいもの、変えたいものはある？", "What do you think you inherited from your parents? Anything you want to keep or change?"],
+ ["deep", "如果可以跟過去的某個人再見一面，你會想見誰？想說什麼？", 0, 0, "過去の誰かにもう一度会えるなら、誰に会いたい？何を話したい？", "If you could see someone from your past one more time, who would it be? What would you say?"],
+ ["deep", "你希望十年後的自己在過什麼樣的生活？", 0, 0, "10年後の自分には、どんな生活をしていてほしい？", "What kind of life do you hope you're living ten years from now?"],
+ ["deep", "對你來說，什麼是用錢買不到、但你最想要的？", 0, 0, "お金では買えないけど、いちばん欲しいものは何？", "What's something money can't buy that you want most?"],
+ ["deep", "什麼事會讓你覺得自己「不夠好」？", 0, 0, "どんなときに「自分はまだまだだ」と感じる？", "What makes you feel like you're not good enough?"],
+ ["deep", "在場的人身上，有什麼是你想學習的？", 0, 0, "ここにいる人から学びたいと思うところは？", "What's something you'd like to learn from someone here?"],
+ ["deep", "猜猜看對方人生中最重要的轉折點是什麼，再請他說說看。", 0, 1, "相手の人生でいちばん大きな転機を当ててみて、本人に話してもらおう。", "Guess the biggest turning point in the other person's life, then let them tell you about it."],
+ ["deep", "猜猜看對方最想實現的夢想是什麼，再請他公布答案。", 0, 1, "相手がいちばん叶えたい夢を当ててみて、本人に答え合わせしてもらおう。", "Guess the dream the other person most wants to come true, then have them reveal the answer."],
+ ["deep", "猜猜看對方覺得自己最大的優點是什麼，再請他公布答案。", 0, 1, "相手が自分のいちばんの長所だと思っているところを当ててみて、本人に答え合わせしてもらおう。", "Guess what the other person thinks is their greatest strength, then have them reveal the answer."],
+ ["deep", "猜猜看對方最想對十年前的自己說什麼，再請他公布答案。", 0, 1, "相手が10年前の自分にいちばん言いたいことを当ててみて、本人に答え合わせしてもらおう。", "Guess what the other person would most like to tell their self from ten years ago, then have them reveal it."],
+ ["deep", "猜猜看對方在什麼時候最有安全感，再請他說說看。", 0, 1, "相手がどんなときにいちばん安心できるか当ててみて、本人に話してもらおう。", "Guess when the other person feels most at ease and safe, then let them tell you about it."],
+ ["medium", "如果你的人生有一個隱藏結局，你希望是什麼？", 0, 0, "もし人生に隠しエンディングがあるなら、どんな結末がいい？", "If your life had a secret ending, what would you want it to be?"],
+ ["medium", "如果把你這個人做成一款遊戲，會是什麼類型？最難的關卡是什麼？", 1, 0, "自分をゲームにするとしたら、どんなジャンル？いちばんの難関ステージは？", "If you were turned into a video game, what genre would it be? What's the hardest level?"],
+ ["medium", "如果你的人生有一份說明書，第一頁的注意事項會寫什麼？", 1, 0, "もし人生に取扱説明書があるなら、最初のページの注意事項には何て書いてある？", "If your life came with a user manual, what would the warnings on page one say?"],
+ ["medium", "如果你的人生目前是一道料理，會是什麼菜？還差什麼調味？", 1, 0, "今の人生を料理にたとえると、どんな料理？あと何の味つけが足りない？", "If your life right now were a dish, what would it be? What seasoning is it still missing?"],
+ ["light", "你最近最期待的一件事是什麼？", 0, 0, "最近いちばん楽しみにしていることは？", "What are you looking forward to most these days?"],
+ ["light", "這個月有沒有給自己定什麼小目標？", 0, 0, "今月、自分に何か小さな目標を立ててる？", "Have you set yourself any small goals this month?"],
+ ["light", "如果明天突然多出一個月的假期，你第一天會做什麼？", 0, 0, "明日から急に1か月の休みができたら、初日は何をする？", "If you suddenly got a month off starting tomorrow, what would you do on day one?"],
+ ["medium", "五年後的你，最希望已經學會什麼？", 0, 0, "5年後の自分には、何ができるようになっていてほしい？", "What do you hope you'll have learned five years from now?"],
+ ["medium", "你現在的生活裡，有什麼是希望一直不要改變的？", 0, 0, "今の生活の中で、ずっと変わらないでほしいものは？", "What in your life right now do you hope never changes?"],
+ ["medium", "最近有什麼事，讓你覺得「自己正在變好」？", 0, 0, "最近「自分、成長してるかも」と思えたことは？", "What's something lately that made you feel you're getting better?"],
+ ["medium", "如果一年後回頭看今天，你希望自己已經做了什麼決定？", 0, 0, "1年後に今日を振り返ったとき、どんな決断をしていたいと思う？", "Looking back on today a year from now, what decision do you hope you'll have made?"],
+ ["medium", "如果可以偷看一個關於未來的答案，你想知道什麼？", 0, 0, "未来のことをひとつだけこっそり知れるとしたら、何を知りたい？", "If you could peek at one answer about the future, what would you want to know?"],
+ ["deep", "你現在最放不下的一件事是什麼？", 0, 0, "今いちばん手放せないでいることは何？", "What's the one thing you can't let go of right now?"],
+ ["deep", "你希望老了以後，是個什麼樣的人？", 0, 0, "年をとったとき、どんな人でいたい？", "What kind of person do you hope to be when you're old?"],
+ ["deep", "有什麼事，你怕再不做就來不及了？", 0, 0, "今やらないと手遅れになりそうで怖いことってある？", "Is there something you're afraid it'll be too late to do if you don't do it soon?"],
+ ["light", "你最喜歡的一種聲音是什麼？（雨聲、咖啡機的聲音、翻書聲……）", 0, 0, "いちばん好きな音は何？（雨の音、コーヒーマシンの音、ページをめくる音……）", "What's your favorite sound? (Rain, a coffee machine, pages turning…)"],
+ ["light", "有沒有什麼味道是別人覺得奇怪、你卻很喜歡的？", 1, 0, "人には変だと言われるけど、自分は好きな匂いってある？", "Is there a smell you love that other people think is weird?"],
+ ["light", "哪一首歌最能代表你的學生時代？", 0, 0, "学生時代をいちばんよく表している曲は？", "What song best sums up your school days?"],
+ ["light", "有沒有一道菜的味道，一吃就會想起家？", 0, 0, "食べるとすぐに家を思い出す料理ってある？", "Is there a dish that instantly reminds you of home?"],
+ ["medium", "有沒有什麼味道，會讓你一下子想起某段時期？", 0, 0, "嗅いだ瞬間、ある時期を思い出す匂いってある？", "Is there a smell that instantly takes you back to a certain time in your life?"],
+ ["medium", "哪首歌一聽就會想起某個人？是誰？", 0, 0, "聴くとすぐにある人を思い出す曲は？それは誰？", "What song instantly reminds you of someone? Who is it?"],
+ ["medium", "你記憶中最美的一個畫面是什麼？", 0, 0, "記憶の中でいちばんきれいな景色は？", "What's the most beautiful scene in your memory?"],
+ ["medium", "有沒有哪個地方的空氣或氣味，是你到現在都還記得的？", 0, 0, "今でも覚えている、ある場所の空気や匂いってある？", "Is there a place whose air or scent you still remember?"],
+ ["deep", "有沒有一首歌，你現在已經不太敢聽了？為什麼？", 0, 0, "今はもうあまり聴けなくなった曲ってある？どうして？", "Is there a song you can't really bring yourself to listen to anymore? Why?"],
+ ["deep", "如果能再聽見某個人對你說一句話，你想聽誰說、說什麼？", 0, 0, "もう一度だけ誰かの言葉を聞けるとしたら、誰に何を言ってほしい？", "If you could hear one more sentence from someone, who would it be, and what would they say?"]
+].map((r,i)=>({id:STARTER_IDS[i],level:r[0],text:r[1],humor:!!r[2],guess:!!r[3],ja:r[4]||"",en:r[5]||"",createdAt:i}));
 
 const LS_KEY = "huaxiazi-questions-v3", LS_V2 = "huaxiazi-questions-v2", LS_OLD = "huaxiazi-questions-v1";
 const $ = id => document.getElementById(id);
@@ -411,8 +503,8 @@ let editingId = null, pendingDelete = null;
 // The browser keeps its own copy of the question bank. When this file ships a newer
 // built-in list, built-in questions the person never edited are refreshed; their own
 // questions, edits and deletions are kept.
-const pick = q => ({text:q.text, level:q.level, humor:!!q.humor, guess:!!q.guess});
-const same = (a,b) => a && b && a.text===b.text && a.level===b.level && !!a.humor===!!b.humor && !!a.guess===!!b.guess;
+const pick = q => ({text:q.text, ja:q.ja||"", en:q.en||"", level:q.level, humor:!!q.humor, guess:!!q.guess});
+const same = (a,b) => a && b && a.text===b.text && (a.ja||"")===(b.ja||"") && (a.en||"")===(b.en||"") && a.level===b.level && !!a.humor===!!b.humor && !!a.guess===!!b.guess;
 function starterBase(){ const m = {}; for(const q of STARTER) m[q.id] = pick(q); return m; }
 function mergeWithStarter(list, base){
   const st = new Map(STARTER.map(q=>[q.id,q]));
@@ -441,7 +533,7 @@ function lsLoad(){
     if(Array.isArray(v2)) list = mergeWithStarter(v2, null);
     else {
       list = STARTER.map(q=>({...q}));
-      const o = readJSON(LS_OLD);          // questions added in the very first version
+      const o = readJSON(LS_OLD);
       if(Array.isArray(o)){
         const texts = new Set(list.map(q=>q.text));
         for(const q of o){ if(q && q.text && !texts.has(q.text)){ list.push(q); texts.add(q.text); } }
@@ -453,9 +545,7 @@ function lsLoad(){
 }
 function lsSave(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({base: starterBase(), list: questions})); }catch(e){} }
 
-function useLocal(){
-  mode = "local"; questions = lsLoad(); onData();
-}
+function useLocal(){ mode = "local"; questions = lsLoad(); onData(); }
 
 async function init(){
   renderLevels(); renderCardBack();
@@ -490,32 +580,32 @@ async function removeQuestion(id){
 function handleWriteError(e){
   const code = e && e.code;
   if(code === "not_granted" || code === "revoked"){ readOnly = true; renderManage(); }
-  else { $("f-msg").textContent = "沒有存成功，請稍後再試一次。"; }
+  else { $("f-msg").textContent = T().saveFail; }
 }
 const newId = () => "q" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 
 /* ---------- play ---------- */
+function valid(q){ return q && typeof q.text==="string" && LEVELS[q.level] && qText(q); }
+function poolFor(lv){
+  return questions.filter(q => valid(q) && (lv==="all" || q.level===lv) && (!onlyHumor || q.humor) && (!onlyGuess || q.guess));
+}
+function pool(){ return poolFor(level); }
 function renderLevels(){
   const box = $("levels"); box.innerHTML = "";
-  const opts = [["all","隨機","三種混合","any"], ...Object.entries(LEVELS).map(([k,v])=>[k,v.name,v.hint,k])];
-  for(const [k,name,hint,color] of opts){
+  for(const k of ["all","light","medium","deep"]){
     const b = document.createElement("button");
     b.setAttribute("aria-pressed", String(level===k));
-    const sw = document.createElement("span"); sw.className="sw"; sw.style.background = `var(--${color})`;
-    const t = document.createElement("b"); t.append(sw, name);
+    const sw = document.createElement("span"); sw.className="sw"; sw.style.background = `var(--${k==="all"?"any":k})`;
+    const t = document.createElement("b"); t.append(sw, lvName(k));
     const s = document.createElement("small");
     const n = mode==="loading" ? null : poolFor(k).length;
-    s.textContent = (onlyHumor || onlyGuess) && n !== null ? `${n} 張` : hint;
+    s.textContent = (onlyHumor || onlyGuess) && n !== null ? T().count(n) : lvHint(k);
     if(n === 0) b.classList.add("empty-level");
     b.append(t, s);
     b.onclick = () => { level = k; renderLevels(); resetDeck(); };
     box.append(b);
   }
 }
-function poolFor(lv){
-  return questions.filter(q => (lv==="all" || q.level===lv) && (!onlyHumor || q.humor) && (!onlyGuess || q.guess));
-}
-function pool(){ return poolFor(level); }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function resetDeck(){
   clearTimeout(flipTimer); lockUntil = 0;
@@ -524,54 +614,48 @@ function resetDeck(){
   if(flipped){ flipped=false; $("card").classList.remove("flipped"); }
   renderCardBack(); updateHint();
 }
-function remaining(){
-  const ids = new Set(pool().map(q=>q.id));
-  return pool().filter(q=>valid(q) && !drawn.has(q.id)).length;
-}
+function remaining(){ return pool().filter(q=>!drawn.has(q.id)).length; }
 function updateHint(){
+  const s = T();
+  if(mode==="loading"){ $("hint").textContent = s.loading; $("draw").textContent = s.draw; $("draw").disabled = true; return; }
   const p = pool().length;
-  if(mode==="loading"){ $("hint").textContent = "載入題庫中…"; $("draw").disabled = true; return; }
   if(!p){
-    const lvName = level==="all" ? "" : LEVELS[level].name;
-    const f = [onlyHumor ? "幽默題" : "", onlyGuess ? "猜猜看" : ""].filter(Boolean);
-    const box = [onlyHumor ? "「只抽幽默題」" : "", onlyGuess ? "「只抽猜猜看」" : ""].filter(Boolean).join("或");
-    $("hint").textContent = f.length
-      ? `${lvName}目前沒有${f.join("又是")}的題目，取消勾選${box}就能繼續抽`
-      : "這裡還沒有題目，到「題庫」新增吧";
-    $("draw").textContent = "抽一張";
+    $("hint").textContent = (onlyHumor || onlyGuess)
+      ? s.emptyFilter(level==="all" ? "" : lvName(level), onlyHumor, onlyGuess)
+      : s.emptyAll;
+    $("draw").textContent = s.draw;
     $("draw").disabled = true; return;
   }
   $("draw").disabled = false;
-  $("draw").textContent = current ? "下一張" : "抽一張";
+  $("draw").textContent = current ? s.next : s.draw;
   const r = remaining();
-  $("hint").textContent = current ? (r ? `這一輪還剩 ${r} 張` : "這一輪抽完了，下一張會重新洗牌") : `共 ${p} 張，點牌或按「抽一張」開始`;
+  $("hint").textContent = current ? (r ? s.hintLeft(r) : s.hintDone) : s.hintStart(p);
 }
 function renderCardBack(){
   const c = level==="all" ? "any" : level;
   const back = $("back");
   back.style.setProperty("--bk", `var(--${c})`);
   back.style.setProperty("--bk-on", `var(--on-${c})`);
-  $("back-label").textContent = level==="all" ? "隨機" : LEVELS[level].name;
+  $("back-label").textContent = lvName(level);
 }
 function fillFront(q){
   const f = $("front");
   f.style.setProperty("--fc", `var(--${q.level})`);
   f.style.setProperty("--fc-on", `var(--on-${q.level})`);
-  $("corner-top").textContent = LEVELS[q.level].short;
-  $("corner-bottom").textContent = LEVELS[q.level].short;
-  $("qtext").textContent = q.text;
+  $("corner-top").textContent = lvShort(q.level);
+  $("corner-bottom").textContent = lvShort(q.level);
+  $("qtext").textContent = qText(q);
   const b = $("badges"); b.innerHTML = "";
   const add = t => { const s=document.createElement("span"); s.className="badge"; s.textContent=t; b.append(s); };
-  add(LEVELS[q.level].name);
-  if(q.humor) add("★ 幽默");
-  if(q.guess) add("猜猜看");
+  add(lvName(q.level));
+  if(q.humor) add(T().badgeHumor);
+  if(q.guess) add(T().badgeGuess);
 }
 const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-function valid(q){ return q && typeof q.text==="string" && LEVELS[q.level]; }
 function draw(){
   const now = Date.now();
   if(now < lockUntil) return;              // ignore double taps during the flip
-  const ids = new Set(pool().filter(valid).map(q=>q.id));
+  const ids = new Set(pool().map(q=>q.id));
   if(!ids.size){ updateHint(); return; }
   let left = [...ids].filter(id=>!drawn.has(id));
   if(!left.length){                        // round finished: start a new one
@@ -579,9 +663,9 @@ function draw(){
     left = [...ids].filter(id=>id!==current);
     if(!left.length) left = [...ids];
   }
-  const pick = left[Math.floor(Math.random()*left.length)];
-  drawn.add(pick);
-  const q = questions.find(x=>x.id===pick);
+  const pickId = left[Math.floor(Math.random()*left.length)];
+  drawn.add(pickId);
+  const q = questions.find(x=>x.id===pickId);
   if(!valid(q)){ updateHint(); return; }
   const card = $("card");
   const reveal = () => {
@@ -601,30 +685,37 @@ function draw(){
 
 /* ---------- manage ---------- */
 function renderManage(){
-  const st = $("status");
-  st.textContent = mode==="db" ? `共 ${questions.length} 題，改動會自動存到這個頁面，分享給朋友也看得到。`
-                 : mode==="local" ? `共 ${questions.length} 題，存在這台裝置的瀏覽器裡。` : "載入題庫中…";
+  const s = T();
+  const missing = lang==="zh" ? 0 : questions.filter(q=>!qText(q)).length;
+  $("status").textContent = mode==="db" ? s.statusDb(questions.length) + s.statusMissing(missing)
+                          : mode==="local" ? s.statusLocal(questions.length) + s.statusMissing(missing) : s.loading;
   $("ro-notice").hidden = !readOnly;
-  for(const id of ["f-text","f-level","f-humor","f-guess","f-save","btn-import","btn-do-import"]) $(id).disabled = readOnly;
+  for(const id of ["f-text","f-ja","f-en","f-level","f-humor","f-guess","f-save","btn-import","btn-do-import"]) $(id).disabled = readOnly;
+  $("editor-title").textContent = editingId ? s.editorEdit : s.editorAdd;
+  $("f-save").textContent = editingId ? s.saveEdit : s.saveAdd;
   const filter = $("list-filter").value;
+  const order = ["light","medium","deep"];
   const items = questions.filter(q=>filter==="all"||q.level===filter)
-    .sort((a,b)=>["light","medium","deep"].indexOf(a.level)-["light","medium","deep"].indexOf(b.level) || (a.createdAt||0)-(b.createdAt||0));
-  $("list-title").textContent = `題目（${items.length}）`;
+    .sort((a,b)=>order.indexOf(a.level)-order.indexOf(b.level) || (a.createdAt||0)-(b.createdAt||0));
+  $("list-title").textContent = s.listTitle(items.length);
   const ul = $("list"); ul.innerHTML = "";
-  if(!items.length){ const li=document.createElement("li"); li.className="empty"; li.style.display="block"; li.textContent="這裡還沒有題目，從上面新增第一題吧。"; ul.append(li); return; }
+  if(!items.length){ const li=document.createElement("li"); li.className="empty"; li.style.display="block"; li.textContent=s.listEmpty; ul.append(li); return; }
   for(const q of items){
+    if(!LEVELS[q.level]) continue;
     const li = document.createElement("li");
     const bar = document.createElement("span"); bar.className="bar"; bar.style.background=`var(--${q.level})`;
     const body = document.createElement("div");
-    const t = document.createElement("div"); t.className="t"; t.textContent = q.text;
+    const t = document.createElement("div"); t.className="t"; t.textContent = qText(q) || q.text;
+    body.append(t);
+    if(lang!=="zh" && qText(q)){ const z=document.createElement("div"); z.className="tr"; z.textContent=q.text; body.append(z); }
     const m = document.createElement("div"); m.className="meta";
-    m.textContent = [LEVELS[q.level].name, q.humor?"★ 幽默":"", q.guess?"猜猜看":""].filter(Boolean).join("，");
-    body.append(t,m);
+    m.textContent = [lvName(q.level), q.humor?s.badgeHumor:"", q.guess?s.badgeGuess:"", (lang!=="zh" && !qText(q)) ? s.noTr : ""].filter(Boolean).join(" · ");
+    body.append(m);
     const ops = document.createElement("div"); ops.className="ops";
     if(!readOnly){
-      const e = document.createElement("button"); e.className="btn ghost small"; e.textContent="編輯"; e.onclick=()=>startEdit(q);
+      const e = document.createElement("button"); e.className="btn ghost small"; e.textContent=s.edit; e.onclick=()=>startEdit(q);
       const d = document.createElement("button"); d.className="btn ghost small danger";
-      d.textContent = pendingDelete===q.id ? "確定刪除" : "刪除";
+      d.textContent = pendingDelete===q.id ? s.delConfirm : s.del;
       d.onclick = async ()=>{
         if(pendingDelete!==q.id){ pendingDelete=q.id; renderManage(); return; }
         pendingDelete=null; if(editingId===q.id) stopEdit(); await removeQuestion(q.id);
@@ -636,88 +727,112 @@ function renderManage(){
 }
 function startEdit(q){
   editingId = q.id;
-  $("editor-title").textContent = "修改題目";
-  $("f-text").value = q.text; $("f-level").value = q.level;
+  $("f-text").value = q.text; $("f-ja").value = q.ja || ""; $("f-en").value = q.en || "";
+  $("f-level").value = q.level;
   $("f-humor").checked = !!q.humor; $("f-guess").checked = !!q.guess;
-  $("f-save").textContent = "儲存修改"; $("f-cancel").hidden = false; $("f-msg").textContent = "";
+  $("f-cancel").hidden = false; $("f-msg").textContent = "";
+  renderManage();
   $("editor").scrollIntoView({behavior: reduced()?"auto":"smooth", block:"start"});
   $("f-text").focus();
 }
 function stopEdit(){
   editingId = null;
-  $("editor-title").textContent = "新增題目";
-  $("f-text").value = ""; $("f-humor").checked = false; $("f-guess").checked = false;
-  $("f-save").textContent = "新增題目"; $("f-cancel").hidden = true;
+  $("f-text").value = ""; $("f-ja").value = ""; $("f-en").value = "";
+  $("f-humor").checked = false; $("f-guess").checked = false;
+  $("f-cancel").hidden = true;
+  renderManage();
 }
 async function submit(){
+  const s = T();
   const text = $("f-text").value.trim();
-  if(!text){ $("f-msg").textContent = "先寫下題目內容。"; $("f-text").focus(); return; }
+  if(!text){ $("f-msg").textContent = s.needText; $("f-text").focus(); return; }
   const base = editingId ? questions.find(q=>q.id===editingId) : null;
-  const q = { id: editingId || newId(), text, level: $("f-level").value,
+  const q = { id: editingId || newId(), text, ja: $("f-ja").value.trim(), en: $("f-en").value.trim(), level: $("f-level").value,
     humor: $("f-humor").checked, guess: $("f-guess").checked,
     createdAt: base ? (base.createdAt||0) : Date.now() };
   const wasEdit = !!editingId;
   $("f-save").disabled = true;
   const ok = await saveQuestion(q);
   $("f-save").disabled = readOnly;
-  if(ok){ stopEdit(); $("f-msg").textContent = wasEdit ? "已儲存修改。" : `已新增到${LEVELS[q.level].name}。`; }
+  if(ok){ stopEdit(); $("f-msg").textContent = wasEdit ? s.saved : s.added(lvName(q.level)); }
 }
 
 /* export / import */
 function toggleBox(id){ for(const b of ["export-box","import-box"]) $(b).classList.toggle("open", b===id && !$(b).classList.contains("open")); $("io-msg").textContent=""; }
 function doExport(){
-  const data = questions.map(({text,level,humor,guess})=>({text,level,humor:!!humor,guess:!!guess}));
+  const data = questions.map(({text,ja,en,level,humor,guess})=>({text,ja:ja||"",en:en||"",level,humor:!!humor,guess:!!guess}));
   $("export-text").value = JSON.stringify(data, null, 1);
   toggleBox("export-box");
 }
 async function doCopy(){
   const ta = $("export-text");
-  try{ await navigator.clipboard.writeText(ta.value); $("io-msg").textContent = "已複製。"; }
-  catch(e){ ta.focus(); ta.select(); $("io-msg").textContent = "已全選，請手動複製。"; }
+  try{ await navigator.clipboard.writeText(ta.value); $("io-msg").textContent = T().copied; }
+  catch(e){ ta.focus(); ta.select(); $("io-msg").textContent = T().copyManual; }
 }
 async function doImport(){
+  const s = T();
   let arr;
-  try{ arr = JSON.parse($("import-text").value); }catch(e){ $("io-msg").textContent = "格式看不懂，請貼上從「匯出題庫」複製的文字。"; return; }
-  if(!Array.isArray(arr)){ $("io-msg").textContent = "格式看不懂，請貼上從「匯出題庫」複製的文字。"; return; }
+  try{ arr = JSON.parse($("import-text").value); }catch(e){ $("io-msg").textContent = s.importBad; return; }
+  if(!Array.isArray(arr)){ $("io-msg").textContent = s.importBad; return; }
   const existing = new Set(questions.map(q=>q.text));
-  const valid = arr.filter(x=>x && typeof x.text==="string" && x.text.trim() && LEVELS[x.level] && !existing.has(x.text.trim()));
-  if(!valid.length){ $("io-msg").textContent = "沒有可以匯入的新題目（重複的題目會自動略過）。"; return; }
+  const ok = arr.filter(x=>x && typeof x.text==="string" && x.text.trim() && LEVELS[x.level] && !existing.has(x.text.trim()));
+  if(!ok.length){ $("io-msg").textContent = s.importNone; return; }
   $("btn-do-import").disabled = true;
   let n = 0;
-  for(const x of valid){
-    const ok = await saveQuestion({id:newId(), text:x.text.trim().slice(0,200), level:x.level, humor:!!x.humor, guess:!!x.guess, createdAt:Date.now()+n});
-    if(!ok) break; n++;
+  for(const x of ok){
+    const str = v => typeof v==="string" ? v.trim().slice(0,300) : "";
+    const saved = await saveQuestion({id:newId(), text:x.text.trim().slice(0,200), ja:str(x.ja), en:str(x.en), level:x.level, humor:!!x.humor, guess:!!x.guess, createdAt:Date.now()+n});
+    if(!saved) break; n++;
   }
   $("btn-do-import").disabled = readOnly;
-  $("io-msg").textContent = `已匯入 ${n} 題。`;
+  $("io-msg").textContent = s.importDone(n);
   if(n){ $("import-text").value = ""; }
 }
 
 /* ---------- theme ---------- */
 const THEME_KEY = "huaxiazi-theme";
-const THEMES = [
-  {id:"light", ico:"☀", name:"淺色"},
-  {id:"dark",  ico:"☾", name:"深色"},
-];
 let theme = "light";
 try{ if(localStorage.getItem(THEME_KEY)==="dark") theme = "dark"; }catch(e){}
 function applyTheme(){
-  const root = document.documentElement;
-  root.setAttribute("data-theme", theme);
-  const t = THEMES.find(x=>x.id===theme);
-  const next = THEMES[(THEMES.indexOf(t)+1) % THEMES.length];
-  $("theme-ico").textContent = t.ico;
-  $("theme-lbl").textContent = t.name;
-  $("theme-btn").setAttribute("aria-label", `外觀：${t.name}，點一下切換成${next.name}`);
-  $("theme-btn").title = `外觀：${t.name}（點一下切換成${next.name}）`;
+  document.documentElement.setAttribute("data-theme", theme);
+  const s = T();
+  const cur = theme==="dark" ? s.themeDark : s.themeLight, nxt = theme==="dark" ? s.themeLight : s.themeDark;
+  $("theme-ico").textContent = theme==="dark" ? "☾" : "☀";
+  $("theme-lbl").textContent = cur;
+  $("theme-btn").setAttribute("aria-label", s.themeAria(cur, nxt));
+  $("theme-btn").title = s.themeAria(cur, nxt);
 }
 $("theme-btn").onclick = () => {
-  const i = THEMES.findIndex(x=>x.id===theme);
-  theme = THEMES[(i+1) % THEMES.length].id;
+  theme = theme==="dark" ? "light" : "dark";
   try{ localStorage.setItem(THEME_KEY, theme); }catch(e){}
   applyTheme();
 };
-applyTheme();
+
+/* ---------- apply language ---------- */
+function applyLang(){
+  const s = T();
+  document.documentElement.lang = HTML_LANG[lang];
+  document.title = s.docTitle;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{ const v = s[el.dataset.i18n]; if(typeof v==="string") el.textContent = v; });
+  document.querySelectorAll("[data-i18n-aria]").forEach(el=>{ el.setAttribute("aria-label", s[el.dataset.i18nAria]); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el=>{ el.placeholder = s[el.dataset.i18nPh]; });
+  for(const sel of ["f-level","list-filter"]) for(const o of $(sel).options) if(o.value!=="all") o.textContent = lvName(o.value);
+  const ol = $("rules"); ol.innerHTML = ""; for(const r of s.rules){ const li=document.createElement("li"); li.textContent=r; ol.append(li); }
+  const next = STR[LANGS[(LANGS.indexOf(lang)+1)%LANGS.length]].langName;
+  $("lang-btn").textContent = s.langBtn;
+  $("lang-btn").setAttribute("aria-label", s.langAria(next)); $("lang-btn").title = s.langAria(next);
+  applyTheme(); renderLevels(); renderCardBack(); renderManage();
+  if(current){
+    const q = questions.find(x=>x.id===current);
+    if(valid(q)) fillFront(q); else resetDeck();
+  }
+  updateHint();
+}
+$("lang-btn").onclick = () => {
+  lang = LANGS[(LANGS.indexOf(lang)+1)%LANGS.length];
+  try{ localStorage.setItem(LANG_KEY, lang); }catch(e){}
+  applyLang();
+};
 
 /* ---------- wiring ---------- */
 function onData(){ renderManage(); renderLevels(); updateHint(); }
@@ -742,8 +857,9 @@ $("btn-export").onclick = doExport;
 $("btn-import").onclick = ()=>toggleBox("import-box");
 $("btn-copy").onclick = doCopy;
 $("btn-do-import").onclick = doImport;
-updateHint();
+applyLang();
 init();
+
 </script>
 </body>
 </html>
