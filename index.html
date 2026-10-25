@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>話匣子｜對話卡牌</title>
 <script>
-try{ var t = localStorage.getItem("huaxiazi-theme"); if(t==="light"||t==="dark") document.documentElement.setAttribute("data-theme", t);
-  var l = localStorage.getItem("huaxiazi-lang"); if(l==="ja"||l==="en") document.documentElement.lang = l; }catch(e){}
+try{ var t = localStorage.getItem("talkbox-theme"); if(t!=="light"&&t!=="dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; document.documentElement.setAttribute("data-theme", t);
+  var l = localStorage.getItem("talkbox-lang"); if(l==="ja"||l==="en") document.documentElement.lang = l; }catch(e){}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -139,6 +139,7 @@ select{border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;backgr
   <header>
     <h1 data-i18n="title">話匣子</h1>
     <div class="head-right">
+      <a class="theme-btn" id="home-btn" href="../index.html" hidden style="text-decoration:none;color:var(--ink)" aria-label="Home">🏠</a>
       <button class="theme-btn lang-btn" id="lang-btn" type="button">中</button>
       <button class="theme-btn" id="theme-btn" type="button"><span class="ico" id="theme-ico" aria-hidden="true">☀</span><span class="lbl" id="theme-lbl">淺色</span></button>
       <div class="tabs" role="tablist">
@@ -251,7 +252,7 @@ select{border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;backgr
 /* ---------- language ---------- */
 const LANGS = ["zh","ja","en"];
 const HTML_LANG = {zh:"zh-Hant", ja:"ja", en:"en"};
-const LANG_KEY = "huaxiazi-lang";
+const LANG_KEY = "talkbox-lang";
 let lang = "zh";
 try{ const l = localStorage.getItem(LANG_KEY); if(LANGS.includes(l)) lang = l; }catch(e){}
 
@@ -790,9 +791,9 @@ async function doImport(){
 }
 
 /* ---------- theme ---------- */
-const THEME_KEY = "huaxiazi-theme";
-let theme = "light";
-try{ if(localStorage.getItem(THEME_KEY)==="dark") theme = "dark"; }catch(e){}
+const THEME_KEY = "talkbox-theme";
+let theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+try{ const s = localStorage.getItem(THEME_KEY); if(s==="dark"||s==="light") theme = s; }catch(e){}
 function applyTheme(){
   document.documentElement.setAttribute("data-theme", theme);
   const s = T();
@@ -859,6 +860,7 @@ $("btn-copy").onclick = doCopy;
 $("btn-do-import").onclick = doImport;
 applyLang();
 init();
+if(window.Capacitor) $("home-btn").hidden = false;
 
 </script>
 </body>
